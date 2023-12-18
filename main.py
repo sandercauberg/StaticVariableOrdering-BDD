@@ -1,16 +1,35 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import cmd
+import os
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+class MyCLI(cmd.Cmd):
+    prompt = ">> "  # Change the prompt text
+    intro = (
+        'Welcome to MyCLI. Type "help" for available commands. Type "list" '
+        'for available input files. Type "hello" to see a message. Type '
+        '"quit" to quit.'
+        # Your intro message
+    )
+
+    def __init__(self):
+        super().__init__()
+        self.current_directory = os.getcwd()
+
+    def do_list(self, line):
+        """List files and directories in the current directory."""
+        files_and_dirs = os.listdir(self.current_directory + r"\input_files")
+        for item in files_and_dirs:
+            print(item)
+
+    def do_hello(self, line):
+        """Print a greeting."""
+        print("Hello, World!")
+
+    def do_quit(self, line):
+        """Exit the CLI."""
+        return True
 
 
 # Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+if __name__ == "__main__":
+    MyCLI().cmdloop()
