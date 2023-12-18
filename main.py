@@ -1,6 +1,8 @@
 import cmd
 import os
 
+import parser
+
 
 class MyCLI(cmd.Cmd):
     prompt = ">> "  # Change the prompt text
@@ -17,9 +19,15 @@ class MyCLI(cmd.Cmd):
 
     def do_list(self, line):
         """List files and directories in the current directory."""
-        files_and_dirs = os.listdir(self.current_directory + r"\input_files")
+        files_and_dirs = os.listdir(self.current_directory + r"\\input_files")
         for item in files_and_dirs:
             print(item)
+
+    def do_choose(self, line):
+        path = self.current_directory + r"\\input_files\\" + line
+        with open(path, "r") as file:
+            parser.read(file)
+            file.close()
 
     def do_hello(self, line):
         """Print a greeting."""
