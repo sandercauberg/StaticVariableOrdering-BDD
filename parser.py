@@ -3,7 +3,7 @@ import io
 import typing
 import warnings
 
-from meta.formula import And, Or, Variable, Not, Formula
+from meta.formula import And, Or, Variable, Not
 
 
 def load(fp: typing.TextIO):

@@ -2,6 +2,7 @@ import cmd
 import os
 
 import parser
+from heuristics.random import random_order
 from meta.formula import Variable
 from meta.useformula import dop
 
@@ -30,6 +31,8 @@ class MyCLI(cmd.Cmd):
         with open(path, "r") as file:
             formula = parser.load(file)
             print(formula)
+            order = random_order(formula)
+            print(order)
             file.close()
 
     def do_hello(self, line):

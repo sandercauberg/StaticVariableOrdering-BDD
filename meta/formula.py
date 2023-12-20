@@ -14,6 +14,17 @@ class Formula:
     def eval(self, v):
         raise NotImplementedError("Plain formula can not be valuated")
 
+    def extract_variables(self):
+        variables = set()
+        if isinstance(self, Variable):
+            variables.add(self)
+        elif isinstance(self, BinOp):
+            for child in self.children:
+                variables.update(child.extract_variables())
+        elif isinstance(self, Not):
+            variables.update(self.child.extract_variables())
+        return variables
+
 
 class BinOp(Formula):
     def __init__(self, *children):
