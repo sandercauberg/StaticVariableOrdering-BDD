@@ -2,6 +2,8 @@ import cmd
 import os
 
 import parser
+from meta.formula import Variable
+from meta.useformula import dop
 
 
 class MyCLI(cmd.Cmd):
@@ -31,6 +33,19 @@ class MyCLI(cmd.Cmd):
 
     def do_hello(self, line):
         """Print a greeting."""
+        a = Variable("a")
+        b = Variable("b")
+        c = Variable("c")
+        d = Variable("d")
+
+        dop(a | b, {a})
+        dop(a & b, {a, b})
+        dop(a & b | b & c, {b, c})
+        dop((a | c | ~d) & d & (b | ~c), {})
+        dop(~a & ~~~b, {})
+        dop(a | ~a, {})
+        dop((~a | b) | (~b | a), {})
+        dop((~a | a) | (~b | b), {})
         print("Hello, World!")
 
     def do_quit(self, line):
