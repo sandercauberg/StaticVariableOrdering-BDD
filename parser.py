@@ -112,37 +112,26 @@ def _load_cnf(fp: typing.TextIO):
 
 
 def _parse_cnf(tokens: typing.Iterable[str]):
-    clauses = set()  # type: typing.Set[Or[Variable]]
+    clauses = set()  # type: typing.Set[typing.Tuple[Variable, ...]]
     clause = set()  # type: typing.Set[Variable]
     for token in tokens:
         if token == "0":
-            clauses.add(Or(clause))
+            clauses.add(tuple(clause))
             clause = set()
-        elif token == "%":
-            # Some example files end with:
-            # 0
-            # %
-            # 0
-            # I don't know why.
-            break
         elif token.startswith("-"):
-            clause.add(Variable(_parse_int(token[1:]), False))
+            clause.add(Variable(_parse_int(token[1:]), negated=True))
         else:
             clause.add(Variable(_parse_int(token)))
     if clause:
         # A file may or may not end with a 0
         # Adding an empty clause is not desirable
-        clauses.add(Or(clause))
-    sentence = And(clauses)
+        clauses.add(tuple(clause))
+    sentence = And(*[Or(*clause_tuple) for clause_tuple in clauses])
     return sentence
 
 
 def _parse_int(token: str) -> int:
-    """Parse an integer, or raise an appropriate exception.
-
-    Arguably a little too accepting, e.g. _parse_int("३") == 3
-    (that's U+0969 DEVANAGARI DIGIT THREE)
-    """
+    """Parse an integer, or raise an appropriate exception."""
     try:
         return int(token)
     except ValueError:

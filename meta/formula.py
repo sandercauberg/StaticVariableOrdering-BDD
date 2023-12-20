@@ -63,8 +63,9 @@ class Not(Formula):
 
 
 class Variable(Formula):
-    def __init__(self, name):
+    def __init__(self, name, negated=False):
         self.name = name
+        self.negated = negated
 
     def __hash__(self):
         return hash(self.name)
