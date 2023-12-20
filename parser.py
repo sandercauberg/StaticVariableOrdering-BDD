@@ -3,7 +3,7 @@ import io
 import typing
 import warnings
 
-from meta.formula import And, Or, Variable, Not
+from meta.formula import And, Or, Variable, Not, Formula
 
 
 def load(fp: typing.TextIO):
@@ -112,14 +112,14 @@ def _load_cnf(fp: typing.TextIO):
 
 
 def _parse_cnf(tokens: typing.Iterable[str]):
-    clauses = set()  # type: typing.Set[typing.Tuple[Variable, ...]]
-    clause = set()  # type: typing.Set[Variable]
+    clauses = set()  # type: typing.Set[typing.Tuple[Formula, ...]]
+    clause = set()  # type: typing.Set[Formula]
     for token in tokens:
         if token == "0":
             clauses.add(tuple(clause))
             clause = set()
         elif token.startswith("-"):
-            clause.add(Variable(_parse_int(token[1:]), negated=True))
+            clause.add(Not(Variable(_parse_int(token[1:]))))
         else:
             clause.add(Variable(_parse_int(token)))
     if clause:

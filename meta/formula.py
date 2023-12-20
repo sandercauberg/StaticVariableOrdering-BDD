@@ -50,6 +50,9 @@ class Not(Formula):
     def __init__(self, child):
         self.child = child
 
+    def __hash__(self):
+        return hash(("Not", self.child))
+
     def eval(self, v):
         return not self.child.eval(v)
 
@@ -63,9 +66,8 @@ class Not(Formula):
 
 
 class Variable(Formula):
-    def __init__(self, name, negated=False):
+    def __init__(self, name):
         self.name = name
-        self.negated = negated
 
     def __hash__(self):
         return hash(self.name)
