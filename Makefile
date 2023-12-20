@@ -7,5 +7,8 @@ format:
 lint:
 	./venv/Scripts/flake8 --exclude=./venv/
 
+test:
+	pytest ./tests/
+
 run:
 	python main.py
