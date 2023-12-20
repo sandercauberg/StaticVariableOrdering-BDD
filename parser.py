@@ -1,28 +1,151 @@
-def read(file):
-    text = ""
+import collections
+import io
+import typing
+import warnings
 
-    for line in file:
-        line = line.strip()
+from meta.formula import And, Or, Variable, Not
+
+
+def load(fp: typing.TextIO):
+    """Load a sentence from an open file.
+
+    The format is automatically detected.
+    """
+    for line in fp:
         if line.startswith("c"):
-            # Comment line
-            pass
-        elif line.startswith("p"):
-            if line.split()[1] == "cnf":
-                variables = line.split()[2]
-                clauses = line.split()[3]
-                print(
-                    "cnf with "
-                    + variables
-                    + " variables and "
-                    + clauses
-                    + " clauses"
-                )
-            elif line.split()[1] == "sat":
-                variables = line.split()[2]
-                print("sat with " + variables + " variables")
+            continue
+        if line.startswith("p "):
+            problem = line.split()
+            if len(line) < 2:
+                raise NotImplementedError("Malformed problem line")
+            fmt = problem[1]
+            if "sat" in fmt or "SAT" in fmt:
+                # problem[2] contains the number of variables
+                # but that's currently not explicitly represented
+                return _load_sat(fp)
+            elif "cnf" in fmt or "CNF" in fmt:
+                # problem[2] has the number of variables
+                # problem[3] has the number of clauses
+                return _load_cnf(fp)
+            else:
+                raise NotImplementedError("Unknown format '{}'".format(fmt))
         else:
-            text = text + line + " "
+            raise NotImplementedError(
+                "Couldn't find a problem line before an unknown kind of line"
+            )
+    else:
+        raise NotImplementedError(
+            "Couldn't find a problem line before the end of the file"
+        )
 
-    output_list = [chunk.strip() for chunk in text.split("0") if chunk.strip()]
 
-    print(output_list)
+def loads(s: str):
+    """Like :func:`load`, but from a string instead of from a file."""
+    return load(io.StringIO(s))
+
+
+def _load_sat(fp: typing.TextIO):
+    tokens = collections.deque()  # type: typing.Deque[str]
+    for line in fp:
+        if line.startswith("c"):
+            continue
+        tokens.extend(
+            line.replace("(", "( ")
+            .replace(")", " ) ")
+            .replace("+(", " +(")
+            .replace("*(", " *(")
+            .replace("-", " - ")
+            .split()
+        )
+    result = _parse_sat(tokens)
+    if tokens:
+        warnings.warn("Found extra tokens past the end of the sentence")
+    return result
+
+
+def _parse_sat(tokens: "typing.Deque[str]"):
+    cur = tokens.popleft()
+    if cur == "(":
+        content = _parse_sat(tokens)
+        close = tokens.popleft()
+        if close != ")":
+            raise NotImplementedError(
+                "Expected closing paren, found {!r}".format(close)
+            )
+        return content
+    elif cur == "-":
+        content = _parse_sat(tokens)
+        if not isinstance(content, Variable):
+            raise NotImplementedError(
+                "Only variables can be negated, not {!r}".format(content)
+            )
+        return Not(content)
+    elif cur == "*(":
+        children = []
+        while tokens[0] != ")":
+            children.append(_parse_sat(tokens))
+        tokens.popleft()
+        if children:
+            return And(*children)
+        else:
+            return True
+    elif cur == "+(":
+        children = []
+        while tokens[0] != ")":
+            children.append(_parse_sat(tokens))
+        tokens.popleft()
+        if children:
+            return Or(*children)
+        else:
+            return False
+    else:
+        return Variable(_parse_int(cur))
+
+
+def _load_cnf(fp: typing.TextIO):
+    tokens = []  # type: typing.List[str]
+    for line in fp:
+        if line.startswith("c"):
+            continue
+        tokens.extend(line.replace("-", " -").split())
+    return _parse_cnf(tokens)
+
+
+def _parse_cnf(tokens: typing.Iterable[str]):
+    clauses = set()  # type: typing.Set[Or[Variable]]
+    clause = set()  # type: typing.Set[Variable]
+    for token in tokens:
+        if token == "0":
+            clauses.add(Or(clause))
+            clause = set()
+        elif token == "%":
+            # Some example files end with:
+            # 0
+            # %
+            # 0
+            # I don't know why.
+            break
+        elif token.startswith("-"):
+            clause.add(Variable(_parse_int(token[1:]), False))
+        else:
+            clause.add(Variable(_parse_int(token)))
+    if clause:
+        # A file may or may not end with a 0
+        # Adding an empty clause is not desirable
+        clauses.add(Or(clause))
+    sentence = And(clauses)
+    return sentence
+
+
+def _parse_int(token: str) -> int:
+    """Parse an integer, or raise an appropriate exception.
+
+    Arguably a little too accepting, e.g. _parse_int("३") == 3
+    (that's U+0969 DEVANAGARI DIGIT THREE)
+    """
+    try:
+        return int(token)
+    except ValueError:
+        raise NotImplementedError(
+            "Found unexpected token {!r}".format(token)
+        ) from None

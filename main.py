@@ -28,7 +28,8 @@ class MyCLI(cmd.Cmd):
     def do_choose(self, line):
         path = self.current_directory + r"\\input_files\\" + line
         with open(path, "r") as file:
-            parser.read(file)
+            formula = parser.load(file)
+            print(formula)
             file.close()
 
     def do_hello(self, line):

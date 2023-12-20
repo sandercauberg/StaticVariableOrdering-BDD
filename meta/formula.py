@@ -26,6 +26,8 @@ class BinOp(Formula):
             + ")"
         )
 
+    __repr__ = __str__
+
     def eq(self, other):
         return self.children == other.children
 
@@ -53,6 +55,8 @@ class Not(Formula):
 
     def __str__(self):
         return "¬" + str(self.child)
+
+    __repr__ = __str__
 
     def eq(self, other):
         return self.child == other.child
