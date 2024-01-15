@@ -1,20 +1,18 @@
 import cmd
 import os
+from timeit import default_timer
 
 import parser
 from heuristics.random import random_order
-from meta.formula import Variable
-from meta.useformula import dop
 
 
 class MyCLI(cmd.Cmd):
-    prompt = ">> "  # Change the prompt text
-    intro = (
-        'Welcome to MyCLI. Type "help" for available commands. Type "list" '
-        'for available input files. Type "hello" to see a message. Type '
-        '"quit" to quit.'
-        # Your intro message
-    )
+    prompt = ">> "
+    intro = """Welcome to MyCLI. Type "help" for available commands.
+        Type "list" for available input files.
+        Type "choose {filename}" to create an ordering from the input file.
+        Type "quit" to quit.
+        """
 
     def __init__(self):
         super().__init__()
@@ -27,30 +25,29 @@ class MyCLI(cmd.Cmd):
             print(item)
 
     def do_choose(self, line):
+        """Choose the input file to create a variable ordering"""
         path = self.current_directory + r"\\input_files\\" + line
         with open(path, "r") as file:
+            start_time = default_timer()
             formula = parser.load(file)
-            print(formula)
+            parsed_time = default_timer()
+            print(
+                "the formula: "
+                + str(formula)
+                + " has been parsed in "
+                + str(parsed_time - start_time)
+                + " seconds."
+            )
             order = random_order(formula)
-            print(order)
+            end_time = default_timer()
+            print(
+                "The order: "
+                + order
+                + " has been decided in "
+                + str(end_time - parsed_time)
+                + " seconds."
+            )
             file.close()
-
-    def do_hello(self, line):
-        """Print a greeting."""
-        a = Variable("a")
-        b = Variable("b")
-        c = Variable("c")
-        d = Variable("d")
-
-        dop(a | b, {a})
-        dop(a & b, {a, b})
-        dop(a & b | b & c, {b, c})
-        dop((a | c | ~d) & d & (b | ~c), {})
-        dop(~a & ~~~b, {})
-        dop(a | ~a, {})
-        dop((~a | b) | (~b | a), {})
-        dop((~a | a) | (~b | b), {})
-        print("Hello, World!")
 
     def do_quit(self, line):
         """Exit the CLI."""
