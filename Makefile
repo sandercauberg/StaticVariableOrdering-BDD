@@ -5,7 +5,7 @@ format:
 	./venv/Scripts/black -l 80 ./
 
 lint:
-	./venv/Scripts/flake8 --exclude=./venv/
+	./venv/Scripts/flake8 --exclude=./venv/ --max-line-length 80
 
 test:
 	pytest ./tests/

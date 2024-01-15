@@ -16,7 +16,7 @@ def load(fp: typing.TextIO):
             continue
         if line.startswith("p "):
             problem = line.split()
-            if len(line) < 2:
+            if len(problem) < 2:
                 raise NotImplementedError("Malformed problem line")
             fmt = problem[1]
             if "sat" in fmt or "SAT" in fmt:
@@ -67,6 +67,10 @@ def _parse_sat(tokens: "typing.Deque[str]"):
     cur = tokens.popleft()
     if cur == "(":
         content = _parse_sat(tokens)
+        if not tokens:
+            raise NotImplementedError(
+                "Unexpected end of tokens after opening parenthesis"
+            )
         close = tokens.popleft()
         if close != ")":
             raise NotImplementedError(
