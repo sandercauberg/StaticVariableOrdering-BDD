@@ -1,9 +1,12 @@
 import collections
 import io
 import typing
-import warnings
 
 from meta.formula import And, Or, Variable, Not
+
+
+class ParserWarning(Exception):
+    pass
 
 
 def load(fp: typing.TextIO):
@@ -17,7 +20,7 @@ def load(fp: typing.TextIO):
         if line.startswith("p "):
             problem = line.split()
             if len(problem) < 2:
-                raise NotImplementedError("Malformed problem line")
+                raise ParserWarning("Malformed problem line")
             fmt = problem[1]
             if "sat" in fmt or "SAT" in fmt:
                 # problem[2] contains the number of variables
@@ -28,13 +31,13 @@ def load(fp: typing.TextIO):
                 # problem[3] has the number of clauses
                 return _load_cnf(fp)
             else:
-                raise NotImplementedError("Unknown format '{}'".format(fmt))
+                raise ParserWarning("Unknown format '{}'".format(fmt))
         else:
-            raise NotImplementedError(
+            raise ParserWarning(
                 "Couldn't find a problem line before an unknown kind of line"
             )
     else:
-        raise NotImplementedError(
+        raise ParserWarning(
             "Couldn't find a problem line before the end of the file"
         )
 
@@ -59,7 +62,7 @@ def _load_sat(fp: typing.TextIO):
         )
     result = _parse_sat(tokens)
     if tokens:
-        warnings.warn("Found extra tokens past the end of the sentence")
+        raise ParserWarning("Found extra tokens past the end of the sentence")
     return result
 
 
@@ -68,19 +71,19 @@ def _parse_sat(tokens: "typing.Deque[str]"):
     if cur == "(":
         content = _parse_sat(tokens)
         if not tokens:
-            raise NotImplementedError(
+            raise ParserWarning(
                 "Unexpected end of tokens after opening parenthesis"
             )
         close = tokens.popleft()
         if close != ")":
-            raise NotImplementedError(
+            raise ParserWarning(
                 "Expected closing paren, found {!r}".format(close)
             )
         return content
     elif cur == "-":
         content = _parse_sat(tokens)
         if not isinstance(content, Variable):
-            raise NotImplementedError(
+            raise ParserWarning(
                 "Only variables can be negated, not {!r}".format(content)
             )
         return Not(content)
@@ -139,6 +142,6 @@ def _parse_int(token: str) -> int:
     try:
         return int(token)
     except ValueError:
-        raise NotImplementedError(
+        raise ParserWarning(
             "Found unexpected token {!r}".format(token)
         ) from None

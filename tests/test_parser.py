@@ -73,7 +73,7 @@ def test_input_file_basic__cnf():
 )
 def test_input_file__error_problem_line(input_string, error_string):
     text = io.StringIO(input_string)
-    with pytest.raises(NotImplementedError) as e:
+    with pytest.raises(parser.ParserWarning) as e:
         parser.load(text)
 
     assert str(e.value) == error_string
@@ -106,7 +106,7 @@ def test_input_file__error_problem_line(input_string, error_string):
 )
 def test_input_file__error_sat_file(input_string, error_string):
     text = io.StringIO(input_string)
-    with pytest.raises(NotImplementedError) as e:
+    with pytest.raises(parser.ParserWarning) as e:
         parser.load(text)
 
     assert str(e.value) == error_string
@@ -123,7 +123,7 @@ def test_input_file__error_sat_file(input_string, error_string):
 )
 def test_input_file__error_cnf_file(input_string, error_string):
     text = io.StringIO(input_string)
-    with pytest.raises(NotImplementedError) as e:
+    with pytest.raises(parser.ParserWarning) as e:
         parser.load(text)
 
     assert str(e.value) == error_string

@@ -29,7 +29,11 @@ class MyCLI(cmd.Cmd):
         path = self.current_directory + r"\\input_files\\" + line
         with open(path, "r") as file:
             start_time = default_timer()
-            formula = parser.load(file)
+            try:
+                formula = parser.load(file)
+            except parser.ParserWarning as e:
+                print(f"Warning: {e}. Please try again.")
+                return
             parsed_time = default_timer()
             print(
                 "the formula: "
