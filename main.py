@@ -3,6 +3,7 @@ import os
 from timeit import default_timer
 
 import parser
+from heuristics.fanin import fanin
 from heuristics.random import random_order
 
 
@@ -43,6 +44,7 @@ class MyCLI(cmd.Cmd):
                 + " seconds."
             )
             order = random_order(formula)
+            order = fanin(formula)
             end_time = default_timer()
             print(
                 "The order: "
