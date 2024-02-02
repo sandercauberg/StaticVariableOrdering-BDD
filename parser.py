@@ -2,6 +2,7 @@ import collections
 import io
 import typing
 
+from meta.boolean_circuit import Circuit, Gate
 from meta.formula import And, Or, Variable, Not
 
 
@@ -15,6 +16,8 @@ def load(fp: typing.TextIO):
     The format is automatically detected.
     """
     for line in fp:
+        print("LINE: " + line + str(type(line)))
+        # print(line.equals("BC1.1"))
         if line.startswith("c"):
             continue
         if line.startswith("p "):
@@ -32,6 +35,8 @@ def load(fp: typing.TextIO):
                 return _load_cnf(fp)
             else:
                 raise ParserWarning("Unknown format '{}'".format(fmt))
+        elif line.strip() == "BC1.1":
+            return _load_bc(fp)
         else:
             raise ParserWarning(
                 "Couldn't find a problem line before an unknown kind of line"
@@ -145,3 +150,36 @@ def _parse_int(token: str) -> int:
         raise ParserWarning(
             "Found unexpected token {!r}".format(token)
         ) from None
+
+
+def _load_bc(fp: typing.TextIO):
+    circuit = Circuit()
+    defined_gates = set()
+
+    for line in fp:
+        line = line.strip()
+        if not line or line.startswith("c"):
+            continue  # Skip comments and empty lines
+
+        parts = line.strip().split()
+        if parts[0] == "BC1.1":
+            continue  # Skip the header line
+        if parts[0] == "VAR":
+            circuit.add_input(parts[1].rstrip(';'))
+        elif parts[1] == "GATE":
+            print(" parts i is GATE")
+            gate_name = parts[2]
+            operation = parts[0]
+            input_names = [name.rstrip(';') for name in parts[3:]]
+            circuit.add_gate(gate_name, operation, input_names)
+        elif parts[0] == "ASSIGN":
+            output_gate = parts[1]
+            circuit.add_output_gate(output_gate, parts[2].rstrip(';'))
+
+    # Print circuit inputs and gates
+    print("Inputs:", circuit.inputs)
+    print("Gates:")
+    for gate in circuit.gates.values():
+        print(f"Name: {gate.name}, Operation: {gate.operation}, Inputs: {gate.inputs}")
+    print(circuit.eval({}))
+    return circuit
