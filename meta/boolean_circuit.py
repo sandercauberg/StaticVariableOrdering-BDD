@@ -8,8 +8,12 @@ class Gate:
         if self.operation is None:  # Input variable
             return values.get(self.name, False)
         elif self.operation in ["AND", "OR", "EQUIV", "IMPLY", "NOT"]:
-            print(self.inputs)
-            input_values = [circuit.gates[i].eval(values, circuit) for i in self.inputs]
+            input_values = [
+                gate.eval(values, circuit)
+                if isinstance(gate, Gate)
+                else values.get(gate, False)
+                for gate in self.inputs
+            ]
             if self.operation == "AND":
                 return all(input_values)
             elif self.operation == "OR":
@@ -26,7 +30,9 @@ class Gate:
     def __str__(self):
         if self.operation is None:  # Input variable
             return f"VAR({self.name})"
-        return f"{self.operation}({', '.join(str(gate) for gate in self.inputs)})"
+        return (
+            f"{self.operation}({', '.join(str(gate) for gate in self.inputs)})"
+        )
 
 
 class Circuit:
@@ -41,16 +47,30 @@ class Circuit:
     def add_gate(self, gate_name, operation, inputs):
         if gate_name in self.gates:
             raise ValueError(f"Gate '{gate_name}' is defined more than once.")
-        gate = Gate(gate_name, operation, inputs)
+
+        # Convert input names to Gate objects if they exist
+        input_gates = [
+            self.gates[input_name]
+            if input_name in self.gates
+            else Gate(input_name, None, [])
+            for input_name in inputs
+        ]
+
+        gate = Gate(gate_name, operation, input_gates)
         self.gates[gate.name] = gate
 
     def add_output_gate(self, output_gate_name, input):
         if input not in self.gates:
-            raise ValueError(f"Output gate '{output_gate_name}' is not defined.")
+            raise ValueError(
+                f"Output gate '{output_gate_name}' is not defined."
+            )
         self.output_gate = self.gates[input]
 
     def eval(self, values):
-        return {gate_name: gate.eval(values, self) for gate_name, gate in self.gates.items()}
+        return {
+            gate_name: gate.eval(values, self)
+            for gate_name, gate in self.gates.items()
+        }
 
     def __str__(self):
         return "\n".join(str(gate) for gate in self.gates.values())
