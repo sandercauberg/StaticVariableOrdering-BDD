@@ -46,9 +46,9 @@ class MyCLI(cmd.Cmd):
             )
             # TODO assess which heuristic to call given whether it is SAT, CNF
             #  or BC input
-            # order = random_order(formula)
-            # order = fanin(formula)
             order = bc_fanin(formula)
+            order = random_order(formula)
+            order = fanin(formula)
             end_time = default_timer()
             print(
                 "The order: "
