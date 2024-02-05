@@ -7,7 +7,7 @@ class Gate:
     def eval(self, values, circuit):
         if self.operation is None:  # Input variable
             return values.get(self.name, False)
-        elif self.operation in ["AND", "OR", "EQUIV", "IMPLY", "NOT"]:
+        elif self.operation in ["AND", "OR", "EQUIV", "IMPLY", "NOT", "NOR"]:
             input_values = [
                 gate.eval(values, circuit)
                 if isinstance(gate, Gate)
@@ -24,6 +24,8 @@ class Gate:
                 return not input_values[0] or input_values[1]
             elif self.operation == "NOT":
                 return not input_values[0]
+            elif self.operation == "NOR":
+                return not any(input_values)
         else:
             raise ValueError(f"Unsupported operation: {self.operation}")
 

@@ -3,6 +3,7 @@ import os
 from timeit import default_timer
 
 import parser
+from heuristics.bc_fanin import bc_fanin
 from heuristics.fanin import fanin
 from heuristics.random import random_order
 
@@ -45,8 +46,9 @@ class MyCLI(cmd.Cmd):
             )
             # TODO assess which heuristic to call given whether it is SAT, CNF
             #  or BC input
-            order = random_order(formula)
-            order = fanin(formula)
+            # order = random_order(formula)
+            # order = fanin(formula)
+            order = bc_fanin(formula)
             end_time = default_timer()
             print(
                 "The order: "
