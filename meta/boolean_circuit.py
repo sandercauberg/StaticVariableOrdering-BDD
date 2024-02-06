@@ -32,9 +32,7 @@ class Gate:
     def __str__(self):
         if self.operation is None:  # Input variable
             return f"VAR({self.name})"
-        return (
-            f"{self.operation}({', '.join(str(gate) for gate in self.inputs)})"
-        )
+        return f"{self.operation}({', '.join(str(gate) for gate in self.inputs)})"
 
 
 class Circuit:
@@ -63,15 +61,12 @@ class Circuit:
 
     def add_output_gate(self, output_gate_name, input):
         if input not in self.gates:
-            raise ValueError(
-                f"Output gate '{output_gate_name}' is not defined."
-            )
+            raise ValueError(f"Output gate '{output_gate_name}' is not defined.")
         self.output_gate = self.gates[input]
 
     def eval(self, values):
         return {
-            gate_name: gate.eval(values, self)
-            for gate_name, gate in self.gates.items()
+            gate_name: gate.eval(values, self) for gate_name, gate in self.gates.items()
         }
 
     def __str__(self):

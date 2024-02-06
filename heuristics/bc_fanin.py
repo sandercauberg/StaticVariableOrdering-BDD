@@ -7,9 +7,7 @@ def bc_fanin(circuit):
     def calculate_depth(node, current_depth=1):
         if node.operation is None:  # Input variable
             if node.name in circuit.inputs:
-                input_depth[node.name] = max(
-                    input_depth[node.name], current_depth
-                )
+                input_depth[node.name] = max(input_depth[node.name], current_depth)
         else:
             for input_gate in node.inputs:
                 next_depth = (

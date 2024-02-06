@@ -37,8 +37,7 @@ def test_input_file_basic__cnf():
 
     expected_output_clauses = [{"2", "¬3"}, {"1", "3", "¬4"}, {"4"}]
     actual_output_clauses = [
-        {str(variable) for variable in child.children}
-        for child in formula.children
+        {str(variable) for variable in child.children} for child in formula.children
     ]
 
     for expected_clause in expected_output_clauses:

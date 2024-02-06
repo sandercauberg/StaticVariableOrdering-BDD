@@ -40,9 +40,7 @@ def load(fp: typing.TextIO):
                 "Couldn't find a problem line before an unknown kind of line"
             )
     else:
-        raise ParserWarning(
-            "Couldn't find a problem line before the end of the file"
-        )
+        raise ParserWarning("Couldn't find a problem line before the end of the file")
 
 
 def loads(s: str):
@@ -74,14 +72,10 @@ def _parse_sat(tokens: "typing.Deque[str]"):
     if cur == "(":
         content = _parse_sat(tokens)
         if not tokens:
-            raise ParserWarning(
-                "Unexpected end of tokens after opening parenthesis"
-            )
+            raise ParserWarning("Unexpected end of tokens after opening parenthesis")
         close = tokens.popleft()
         if close != ")":
-            raise ParserWarning(
-                "Expected closing paren, found {!r}".format(close)
-            )
+            raise ParserWarning("Expected closing paren, found {!r}".format(close))
         return content
     elif cur == "-":
         content = _parse_sat(tokens)
@@ -145,9 +139,7 @@ def _parse_int(token: str) -> int:
     try:
         return int(token)
     except ValueError:
-        raise ParserWarning(
-            "Found unexpected token {!r}".format(token)
-        ) from None
+        raise ParserWarning("Found unexpected token {!r}".format(token)) from None
 
 
 def _load_bc(fp: typing.TextIO):

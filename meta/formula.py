@@ -31,11 +31,7 @@ class BinOp(Formula):
         self.children = children
 
     def __str__(self):
-        return (
-            "("
-            + " {} ".format(self.operator).join(map(str, self.children))
-            + ")"
-        )
+        return "(" + " {} ".format(self.operator).join(map(str, self.children)) + ")"
 
     __repr__ = __str__
 
