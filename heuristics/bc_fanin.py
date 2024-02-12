@@ -19,8 +19,6 @@ def bc_fanin(circuit):
 
     calculate_depth(circuit.output_gate)
 
-    print(input_depth)
-
     # Sort the input variables based on both depth and original order
     sorted_inputs = sorted(
         circuit.inputs,
@@ -31,5 +29,6 @@ def bc_fanin(circuit):
         ),
     )
 
-    print(sorted_inputs)
-    return sorted_inputs
+    result_string = " < ".join(map(str, sorted_inputs))
+
+    return result_string, sorted_inputs

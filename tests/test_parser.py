@@ -22,8 +22,9 @@ def test_input_file_basic__sat(input_string, expected_output):
     """Test a basic correct input, while also testing leaving out some
     unambiguous spacing."""
     text = io.StringIO(input_string)
-    formula = parser.load(text)
+    input_format, formula = parser.load(text)
 
+    assert input_format == "sat"
     assert str(formula) == expected_output
 
 
@@ -33,13 +34,14 @@ def test_input_file_basic__cnf():
     text = io.StringIO(
         "c Example CNF format file\nc\np cnf 4 3\n1 3 -4 0\n4 0 2\n-3",
     )
-    formula = parser.load(text)
+    input_format, formula = parser.load(text)
 
     expected_output_clauses = [{"2", "¬3"}, {"1", "3", "¬4"}, {"4"}]
     actual_output_clauses = [
         {str(variable) for variable in child.children} for child in formula.children
     ]
 
+    assert input_format == "cnf"
     for expected_clause in expected_output_clauses:
         assert expected_clause in actual_output_clauses
 

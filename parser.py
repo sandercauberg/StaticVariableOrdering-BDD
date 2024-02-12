@@ -26,15 +26,15 @@ def load(fp: typing.TextIO):
             if "sat" in fmt or "SAT" in fmt:
                 # problem[2] contains the number of variables
                 # but that's currently not explicitly represented
-                return _load_sat(fp)
+                return "sat", _load_sat(fp)
             elif "cnf" in fmt or "CNF" in fmt:
                 # problem[2] has the number of variables
                 # problem[3] has the number of clauses
-                return _load_cnf(fp)
+                return "cnf", _load_cnf(fp)
             else:
                 raise ParserWarning("Unknown format '{}'".format(fmt))
         elif line.strip() == "BC1.1":
-            return _load_bc(fp)
+            return "bc", _load_bc(fp)
         else:
             raise ParserWarning(
                 "Couldn't find a problem line before an unknown kind of line"

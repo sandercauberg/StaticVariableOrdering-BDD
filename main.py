@@ -5,7 +5,7 @@ from timeit import default_timer
 import parser
 from helpers.buddy_helper import create_bdd
 
-# from heuristics.bc_fanin import bc_fanin
+from heuristics.bc_fanin import bc_fanin
 from heuristics.fanin import fanin
 from heuristics.random import random_order
 
@@ -34,7 +34,7 @@ class MyCLI(cmd.Cmd):
         with open(path, "r") as file:
             start_time = default_timer()
             try:
-                formula = parser.load(file)
+                input_format, formula = parser.load(file)
             except parser.ParserWarning as e:
                 print(f"Warning: {e}. Please try again.")
                 return
@@ -46,11 +46,12 @@ class MyCLI(cmd.Cmd):
                 + str(parsed_time - start_time)
                 + " seconds."
             )
-            # TODO assess which heuristic to call given whether it is SAT, CNF
-            #  or BC input
-            # order = bc_fanin(formula)
-            order_string, var_order = random_order(formula)
-            order_string, var_order = fanin(formula)
+
+            if input_format == "bc":
+                order_string, var_order = bc_fanin(formula)
+            else:
+                order_string, var_order = random_order(formula)
+                order_string, var_order = fanin(formula)
 
             end_time = default_timer()
             print(
@@ -62,7 +63,7 @@ class MyCLI(cmd.Cmd):
             )
             file.close()
 
-            create_bdd(formula, var_order)
+            create_bdd(input_format, formula, var_order)
 
     def do_quit(self, line):
         """Exit the CLI."""

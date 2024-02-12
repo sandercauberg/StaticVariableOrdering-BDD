@@ -41,6 +41,9 @@ class Circuit:
         self.inputs = set()
         self.output_gate = None
 
+    def __str__(self):
+        return str(self.output_gate)
+
     def add_input(self, input_name):
         self.inputs.add(input_name)
 
@@ -68,6 +71,3 @@ class Circuit:
         return {
             gate_name: gate.eval(values, self) for gate_name, gate in self.gates.items()
         }
-
-    def __str__(self):
-        return "\n".join(str(gate) for gate in self.gates.values())
