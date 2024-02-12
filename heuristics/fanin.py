@@ -15,5 +15,6 @@ def fanin(formula):
     #     print(f'var {variable} has #dependencies {dependencies}')
 
     result_string = " < ".join(map(lambda x: str(x[0]), dependencies_list))
+    result_list = [variable for variable, _ in dependencies_list]
 
-    return result_string
+    return result_string, result_list
