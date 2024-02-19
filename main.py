@@ -47,7 +47,7 @@ class MyCLI(cmd.Cmd):
                 + " seconds."
             )
 
-            if input_format == "bc":
+            if input_format in ["bc", "v"]:
                 order_string, var_order = bc_fanin(formula)
             else:
                 order_string, var_order = random_order(formula)

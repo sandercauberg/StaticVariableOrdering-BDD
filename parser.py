@@ -35,6 +35,8 @@ def load(fp: typing.TextIO):
                 raise ParserWarning("Unknown format '{}'".format(fmt))
         elif line.strip() == "BC1.1":
             return "bc", _load_bc(fp)
+        elif "module" in line.strip():
+            return "v", _load_verilog(fp)
         else:
             raise ParserWarning(
                 "Couldn't find a problem line before an unknown kind of line"
@@ -167,3 +169,75 @@ def _load_bc(fp: typing.TextIO):
     # print(circuit.eval({}))
     # print(circuit.eval({input_name: True for input_name in circuit.inputs}))
     return circuit
+
+
+def _load_verilog(verilog_code):
+    circuit = Circuit()
+    verilog_code.seek(0)
+
+    # Read the lines of the file
+    verilog_lines = verilog_code.readlines()
+
+    # Set flags to track module start and end
+    module_started = False
+    module_ended = False
+
+    # Process each line in the Verilog code
+    inputs = []
+    outputs = []
+    for line in verilog_lines:
+        line = line.strip()
+
+        # Check for the start of the module
+        if line.startswith("module"):
+            module_started = True
+
+        # Check for the end of the module
+        elif line.startswith("endmodule"):
+            module_ended = True
+            module_started = False
+            if outputs:  # Check if there are any output gates
+                for output in outputs:
+                    # Find a gate name in circuit.gates
+                    gate_name = next(
+                        (gate for gate in circuit.gates if output in gate), None
+                    )
+                    if gate_name is None:
+                        raise ValueError(
+                            f"No matching gate found for output '{output}'."
+                        )
+                    circuit.add_output_gate(output, gate_name)
+
+        # Process lines within the module
+        elif module_started and not module_ended:
+            if line.startswith(("input", "output", "wire")):
+                parse_ports(line, inputs, outputs)
+            elif line.startswith(("and", "or", "nand", "nor", "xor", "xnor")):
+                parse_gate(line, circuit)
+
+    if not module_ended:
+        raise ValueError("No module found in Verilog code.")
+
+    [circuit.add_input(input1) for input1 in inputs]
+    return circuit
+
+
+def parse_ports(ports_str, inputs, outputs):
+    port_type, port_names = ports_str.split(None, 1)
+
+    port_names = port_names.strip(";")
+    port_list = [name.strip() for name in port_names.split(",")]
+
+    if port_type == "input":
+        inputs.extend(port_list)
+    elif port_type == "output":
+        outputs.extend(port_list)
+
+
+def parse_gate(gate_str, circuit):
+    tokens = gate_str.split()
+    tokens = tokens[2:]
+    gate_name = tokens[0].split("(")[1].strip(",")
+    inputs = [token.strip(",);") for token in tokens[1:]]
+    gate_type = gate_str.split()[0].lower()
+    circuit.add_gate(gate_name, gate_type, inputs)

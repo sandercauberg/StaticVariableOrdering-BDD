@@ -40,6 +40,7 @@ class Circuit:
         self.gates = {}
         self.inputs = set()
         self.output_gate = None
+        self.output_gates = []
 
     def __str__(self):
         return str(self.output_gate)
@@ -66,6 +67,7 @@ class Circuit:
         if input not in self.gates:
             raise ValueError(f"Output gate '{output_gate_name}' is not defined.")
         self.output_gate = self.gates[input]
+        self.output_gates.append(self.output_gate)
 
     def eval(self, values):
         return {
