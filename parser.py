@@ -4,6 +4,7 @@ import typing
 
 from meta.boolean_circuit import Circuit
 from meta.formula import And, Or, Variable, Not
+import circuitgraph as cg
 
 
 class ParserWarning(Exception):
@@ -16,7 +17,7 @@ def load(fp: typing.TextIO):
     The format is automatically detected.
     """
     for line in fp:
-        if line.startswith("c"):
+        if line.startswith("c") or line.startswith("//"):
             continue
         if line.startswith("p "):
             problem = line.split()
@@ -36,7 +37,7 @@ def load(fp: typing.TextIO):
         elif line.strip() == "BC1.1":
             return "bc", _load_bc(fp)
         elif "module" in line.strip():
-            return "v", _load_verilog(fp)
+            return "v", cg.from_lib("c17")
         else:
             raise ParserWarning(
                 "Couldn't find a problem line before an unknown kind of line"
@@ -189,6 +190,8 @@ def _load_verilog(verilog_code):
         line = line.strip()
 
         # Check for the start of the module
+        if line.startswith("//"):
+            continue
         if line.startswith("module"):
             module_started = True
 
