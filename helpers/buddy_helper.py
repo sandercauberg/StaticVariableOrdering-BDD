@@ -54,7 +54,7 @@ def get_logic_formula(circuit, gate_name, var_prefix="var_"):
             if node_data["type"] == "or":
                 return f"({'|'.join(input_formulas)})"
             if node_data["type"] == "nor":
-                return f"nor({', '.join(input_formulas)})"
+                return f"({' | '.join(f'!{formula}' for formula in input_formulas)})"
             if node_data["type"] == "not":
                 return f"({''.join(input_formulas)})"
             if node_data["type"] == "xor":

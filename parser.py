@@ -1,5 +1,6 @@
 import collections
 import io
+import os.path
 import typing
 
 from meta.boolean_circuit import Circuit
@@ -37,7 +38,8 @@ def load(fp: typing.TextIO):
         elif line.strip() == "BC1.1":
             return "bc", _load_bc(fp)
         elif "module" in line.strip():
-            return "v", cg.from_lib("c17")
+            # return "v", cg.from_lib("s27")
+            return "v", cg.from_file(os.path.join(os.getcwd(), "input_files\\5xor.v"))
         else:
             raise ParserWarning(
                 "Couldn't find a problem line before an unknown kind of line"
