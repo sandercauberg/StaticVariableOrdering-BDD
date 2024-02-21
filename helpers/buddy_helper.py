@@ -45,7 +45,20 @@ def get_logic_formula(circuit, gate_name, var_prefix="var_"):
                 for input_gate in inputs
             ]
             if node_data["type"] == "nand":
-                return f"nand({', '.join(input_formulas)})"
+                negated_input_formulas = [
+                    f"!({input_formula})" for input_formula in input_formulas
+                ]
+                return f"({'&'.join(negated_input_formulas)})"
+            if node_data["type"] == "and":
+                return f"({'&'.join(input_formulas)})"
+            if node_data["type"] == "or":
+                return f"({'|'.join(input_formulas)})"
+            if node_data["type"] == "nor":
+                return f"nor({', '.join(input_formulas)})"
+            if node_data["type"] == "not":
+                return f"({''.join(input_formulas)})"
+            if node_data["type"] == "xor":
+                return f"({' ^ '.join(input_formulas)})"
             # Add similar conditions for other gate types if needed
     return ""
 
