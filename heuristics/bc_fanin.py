@@ -1,17 +1,22 @@
 def bc_fanin(circuit):
-    nodes_with_output_true = {
-        node: data for node, data in circuit.graph.nodes.items() if data.get("output")
-    }
-    nodes_with_input_true = {
-        node: data
+    nodes_with_output_true = [
+        gate for gate, data in circuit.graph.nodes.items() if data.get("output")
+    ]
+    nodes_with_input_true = [
+        node
         for node, data in circuit.graph.nodes.items()
         if data.get("type") == "input"
-    }
+    ]
     circuit.inputs = nodes_with_input_true
-    circuit.output_gate = next(iter(nodes_with_output_true.keys()))
+    circuit.output_gates = nodes_with_output_true
+    output_gate = circuit.output_gates[0]
 
-    if circuit.output_gate is None:
-        raise ValueError("Output gate is not defined.")
+    if not circuit.output_gates:
+        raise ValueError("Output gates are not defined.")
+
+    if len(circuit.output_gates) > 1:
+        circuit.add("imaginary_output", "and", fanin=circuit.output_gates, output=True)
+        output_gate = "imaginary_output"
 
     input_depth = {input_name: 0 for input_name in circuit.inputs}
 
@@ -29,7 +34,7 @@ def bc_fanin(circuit):
                 )
                 calculate_depth(input_gate, current_depth=next_depth)
 
-    calculate_depth(circuit.output_gate)
+    calculate_depth(output_gate)
 
     # Sort the input variables based on both depth and original order
     sorted_inputs = sorted(

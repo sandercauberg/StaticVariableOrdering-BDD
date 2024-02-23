@@ -40,15 +40,14 @@ class Gate:
 class Circuit:
     def __init__(self):
         self.gates = {}
-        self.inputs = set()
-        self.output_gate = None
+        self.inputs = []
         self.output_gates = []
 
     def __str__(self):
-        return str(self.output_gate)
+        return ", ".join(str(output_gate) for output_gate in self.output_gates)
 
     def add_input(self, input_name):
-        self.inputs.add(input_name)
+        self.inputs.append(input_name)
 
     def add_gate(self, gate_name, operation, inputs):
         if gate_name in self.gates:
@@ -68,8 +67,8 @@ class Circuit:
     def add_output_gate(self, output_gate_name, input):
         if input not in self.gates:
             raise ValueError(f"Output gate '{output_gate_name}' is not defined.")
-        self.output_gate = self.gates[input]
-        self.output_gates.append(self.output_gate)
+        output_gate = self.gates[input]
+        self.output_gates.append(output_gate)
 
     def eval(self, values):
         return {

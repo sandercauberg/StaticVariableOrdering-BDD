@@ -70,8 +70,12 @@ def create_bdd(input_format, formula, var_order):
         formula = transform_expression(str(formula.output_gate))
     elif input_format == "v":
         var_names = [f"var_{var}" for var in formula.inputs]
-        output = get_logic_formula(formula, formula.output_gate)
-        formula = transform_verilog(output)
+        outputs = [
+            get_logic_formula(formula, output_gate)
+            for output_gate in formula.output_gates
+        ]
+        formulas = [transform_verilog(output) for output in outputs]
+        formula = None
     else:
         var_names = [f"var_{var}" for var in formula.extract_variables()]
         formula = (
@@ -85,18 +89,24 @@ def create_bdd(input_format, formula, var_order):
 
     bdd = autoref.BDD()
     bdd.declare(*var_names)
-    u = bdd.add_expr(formula)
+    if formula is None:
+        [bdd.add_expr(formula) for formula in formulas]
+    else:
+        bdd.add_expr(formula)
 
     # Print BDD before reordering
     print("BDD Before Reordering:")
     print(bdd)
-    print("Number of satisfying assignments: " + str(bdd.count(u)))
+    # print("Number of satisfying assignments: " + str(len(bdd)))
 
     # Set the variable order
     var_names = [f"var_{var}" for var in var_order]
     bdd = autoref.BDD()
     bdd.declare(*var_names)
-    bdd.add_expr(formula)
+    if formula is None:
+        [bdd.add_expr(formula) for formula in formulas]
+    else:
+        bdd.add_expr(formula)
 
     # Print BDD after reordering
     print("\nBDD After Reordering:")
