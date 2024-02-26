@@ -6,6 +6,7 @@ import parser
 from helpers.buddy_helper import create_bdd
 
 from heuristics.bc_fanin import bc_fanin
+from heuristics.bc_weight_heuristics import bc_weight_heuristics
 from heuristics.fanin import fanin
 from heuristics.random import random_order
 
@@ -49,6 +50,7 @@ class MyCLI(cmd.Cmd):
 
             if input_format in ["bc", "v"]:
                 order_string, var_order = bc_fanin(formula)
+                order_string, var_order = bc_weight_heuristics(formula)
             else:
                 order_string, var_order = random_order(formula)
                 order_string, var_order = fanin(formula)
