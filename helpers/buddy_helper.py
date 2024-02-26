@@ -8,16 +8,7 @@ def replace_var(match):
     return f"var_{var_name}"
 
 
-def transform_expression(input_string):
-    # Replace VAR() with corresponding variable names
-    output_string = re.sub(r"VAR\((\w+)\)", replace_var, input_string)
-    output_string = re.sub(r"AND\(([^,]+),\s*([^)]+)\)", r"(\1&\2)", output_string)
-    output_string = re.sub(r"OR\(([^,]+),\s*([^)]+)\)", r"(\1|\2)", output_string)
-
-    return output_string
-
-
-def transform_verilog(input_string):
+def transform_graph(input_string):
     input_string = re.sub(r"VAR\((\w+)\)", replace_var, input_string)
 
     def replace_comma_in_nand(match):
@@ -73,7 +64,7 @@ def create_bdd(input_format, formula, var_order):
             get_logic_formula(formula, output_gate)
             for output_gate in formula.output_gates
         ]
-        formulas = [transform_verilog(output) for output in outputs]
+        formulas = [transform_graph(output) for output in outputs]
         formula = None
     elif input_format == "v":
         var_names = [f"var_{var}" for var in formula.inputs]
@@ -81,7 +72,7 @@ def create_bdd(input_format, formula, var_order):
             get_logic_formula(formula, output_gate)
             for output_gate in formula.output_gates
         ]
-        formulas = [transform_verilog(output) for output in outputs]
+        formulas = [transform_graph(output) for output in outputs]
         formula = None
     else:
         var_names = [f"var_{var}" for var in formula.extract_variables()]

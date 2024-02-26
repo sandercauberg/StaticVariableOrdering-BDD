@@ -3,7 +3,6 @@ import io
 import os.path
 import typing
 
-from meta.boolean_circuit import Circuit
 from meta.formula import And, Or, Variable, Not
 import circuitgraph as cg
 
@@ -184,7 +183,7 @@ def _load_bc(fp: typing.TextIO):
 
 
 def _load_verilog(verilog_code):
-    circuit = Circuit()
+    circuit = cg.Circuit()
     verilog_code.seek(0)
 
     # Read the lines of the file
