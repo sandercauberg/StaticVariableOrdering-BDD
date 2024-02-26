@@ -1,6 +1,6 @@
 import re
 
-from dd import autoref
+from dd import BDD
 
 
 def replace_var(match):
@@ -85,7 +85,7 @@ def create_bdd(input_format, formula, var_order):
         for i in range(10):
             formula = formula.replace(str(i), f"var_{i}")
 
-    bdd = autoref.BDD()
+    bdd = BDD()
     bdd.declare(*var_names)
     if formula is None:
         [bdd.add_expr(formula) for formula in formulas]
@@ -99,7 +99,7 @@ def create_bdd(input_format, formula, var_order):
 
     # Set the variable order
     var_names = [f"var_{var}" for var in var_order]
-    bdd = autoref.BDD()
+    bdd = BDD()
     bdd.declare(*var_names)
     if formula is None:
         [bdd.add_expr(formula) for formula in formulas]
