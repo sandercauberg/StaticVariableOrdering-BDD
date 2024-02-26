@@ -59,6 +59,8 @@ def get_logic_formula(circuit, gate_name, var_prefix="var_"):
                 return f"({''.join(input_formulas)})"
             if node_data["type"] == "xor":
                 return f"({' ^ '.join(input_formulas)})"
+            if node_data["type"] == "buf":
+                return input_formulas[0]
             # Add similar conditions for other gate types if needed
     return ""
 
@@ -67,7 +69,12 @@ def create_bdd(input_format, formula, var_order):
     # Create BDD with BuDDy
     if input_format == "bc":
         var_names = [f"var_{var}" for var in formula.inputs]
-        formula = transform_expression(str(formula.output_gate))
+        outputs = [
+            get_logic_formula(formula, output_gate)
+            for output_gate in formula.output_gates
+        ]
+        formulas = [transform_verilog(output) for output in outputs]
+        formula = None
     elif input_format == "v":
         var_names = [f"var_{var}" for var in formula.inputs]
         outputs = [

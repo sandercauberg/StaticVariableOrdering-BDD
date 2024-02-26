@@ -39,7 +39,7 @@ def load(fp: typing.TextIO):
             return "bc", _load_bc(fp)
         elif "module" in line.strip():
             # return "v", cg.from_lib("s27")
-            return "v", cg.from_file(os.path.join(os.getcwd(), "input_files\\5xor.v"))
+            return "v", cg.from_file(os.path.join(os.getcwd(), "input_files\\c17.v"))
         else:
             raise ParserWarning(
                 "Couldn't find a problem line before an unknown kind of line"
@@ -148,7 +148,7 @@ def _parse_int(token: str) -> int:
 
 
 def _load_bc(fp: typing.TextIO):
-    circuit = Circuit()
+    circuit = cg.Circuit()
 
     for line in fp:
         line = line.strip()
@@ -159,18 +159,27 @@ def _load_bc(fp: typing.TextIO):
         if parts[0] == "BC1.1":
             continue  # Skip the header line
         if parts[0] == "VAR":
-            circuit.add_input(parts[1].rstrip(";"))
+            circuit.add(parts[1].rstrip(";"), "input")
         elif parts[1] == "GATE":
             gate_name = parts[2]
-            operation = parts[0]
+            # Map gate types to the ones recognized by circuitgraph
+            operation_mapping = {
+                "AND": "and",
+                "OR": "or",
+                "EQUIV": "equiv",
+                "IMPLY": "implies",
+                "NOT": "not",
+                "NAND": "nand",
+                "NOR": "nor",
+                # Add more mappings as needed
+            }
+            operation = operation_mapping.get(parts[0], parts[0])
             input_names = [name.rstrip(";") for name in parts[3:]]
-            circuit.add_gate(gate_name, operation, input_names)
+            circuit.add(gate_name, operation, fanin=input_names)
         elif parts[0] == "ASSIGN":
             output_gate = parts[1]
-            circuit.add_output_gate(output_gate, parts[2].rstrip(";"))
+            circuit.add(output_gate, "buf", output=True, fanin=[parts[2].rstrip(";")])
 
-    # print(circuit.eval({}))
-    # print(circuit.eval({input_name: True for input_name in circuit.inputs}))
     return circuit
 
 

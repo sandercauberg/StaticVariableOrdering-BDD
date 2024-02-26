@@ -1,3 +1,6 @@
+import circuitgraph as cg
+
+
 class Gate:
     def __init__(self, name, operation, inputs):
         self.name = name
@@ -39,38 +42,22 @@ class Gate:
 
 class Circuit:
     def __init__(self):
-        self.gates = {}
-        self.inputs = []
-        self.output_gates = []
-
-    def __str__(self):
-        return ", ".join(str(output_gate) for output_gate in self.output_gates)
+        self.graph = cg.Circuit()
 
     def add_input(self, input_name):
-        self.inputs.append(input_name)
+        self.graph.add(input_name, "input")
 
     def add_gate(self, gate_name, operation, inputs):
-        if gate_name in self.gates:
-            raise ValueError(f"Gate '{gate_name}' is defined more than once.")
-
-        # Convert input names to Gate objects if they exist
-        input_gates = [
-            self.gates[input_name]
-            if input_name in self.gates
-            else Gate(input_name, None, [])
-            for input_name in inputs
-        ]
-
-        gate = Gate(gate_name, operation, input_gates)
-        self.gates[gate.name] = gate
+        self.graph.add(gate_name, operation, fanin=inputs)
 
     def add_output_gate(self, output_gate_name, input):
-        if input not in self.gates:
-            raise ValueError(f"Output gate '{output_gate_name}' is not defined.")
-        output_gate = self.gates[input]
-        self.output_gates.append(output_gate)
+        self.graph.add(output_gate_name, "buf", output=True, fanin=[input])
 
     def eval(self, values):
         return {
-            gate_name: gate.eval(values, self) for gate_name, gate in self.gates.items()
+            gate_name: self.graph.value(gate_name, values)
+            for gate_name in self.graph.nodes()
         }
+
+    def __str__(self):
+        return ", ".join(self.graph.outputs())
