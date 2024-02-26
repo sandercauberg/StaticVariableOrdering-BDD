@@ -6,11 +6,11 @@ Static Variable Ordering BDD Compilation repository.
 
 ### Requirements
 
-- At least python 3.10 (pyenv managed recommended)
+- At least python 3.11 (pyenv managed recommended)
 
 ### Install the project
 ```bash
-pyenv virtualenv 3.10 StaticVariableOrdering-BDD  # or your alternative to create a venv
+pyenv virtualenv 3.11 StaticVariableOrdering-BDD  # or your alternative to create a venv
 pyenv activate StaticVariableOrdering-BDD
 make install
 ```
