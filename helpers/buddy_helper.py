@@ -58,6 +58,7 @@ def get_logic_formula(circuit, gate_name, var_prefix="var_"):
 
 def create_bdd(input_format, formula, var_order):
     # Create BDD with BuDDy
+    formulas = []
     if input_format == "bc":
         var_names = [f"var_{var}" for var in formula.inputs]
         outputs = [
@@ -87,10 +88,13 @@ def create_bdd(input_format, formula, var_order):
 
     bdd = BDD()
     bdd.declare(*var_names)
+    u = bdd.false
     if formula is None:
-        [bdd.add_expr(formula) for formula in formulas]
+        for formula in formulas:
+            u |= bdd.add_expr(formula)
     else:
-        bdd.add_expr(formula)
+        u = bdd.add_expr(formula)
+    bdd.collect_garbage()
 
     # Print BDD before reordering
     print("BDD Before Reordering:")
@@ -101,10 +105,14 @@ def create_bdd(input_format, formula, var_order):
     var_names = [f"var_{var}" for var in var_order]
     bdd = BDD()
     bdd.declare(*var_names)
+
+    u = bdd.false
     if formula is None:
-        [bdd.add_expr(formula) for formula in formulas]
+        for formula in formulas:
+            u |= bdd.add_expr(formula)
     else:
-        bdd.add_expr(formula)
+        u = bdd.add_expr(formula)
+    bdd.collect_garbage()
 
     # Print BDD after reordering
     print("\nBDD After Reordering:")
