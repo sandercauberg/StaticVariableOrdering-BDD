@@ -1,5 +1,4 @@
 import collections
-import os.path
 import typing
 
 from meta.formula import And, Or, Variable, Not
@@ -16,7 +15,7 @@ def load(path: str):
     The format is automatically detected.
     """
     if path.endswith(".v"):
-        return "v", cg.from_file(os.path.join(os.getcwd(), "input_files\\c17.v"))
+        return "v", cg.from_file(path)
     with open(path, "r") as fp:
         for line in fp:
             if line.startswith("c") or line.startswith("//"):
