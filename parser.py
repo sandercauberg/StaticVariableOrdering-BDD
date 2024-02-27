@@ -1,5 +1,4 @@
 import collections
-import io
 import os.path
 import typing
 
@@ -11,45 +10,42 @@ class ParserWarning(Exception):
     pass
 
 
-def load(fp: typing.TextIO):
+def load(path: str):
     """Load a sentence from an open file.
 
     The format is automatically detected.
     """
-    for line in fp:
-        if line.startswith("c") or line.startswith("//"):
-            continue
-        if line.startswith("p "):
-            problem = line.split()
-            if len(problem) < 2:
-                raise ParserWarning("Malformed problem line")
-            fmt = problem[1]
-            if "sat" in fmt or "SAT" in fmt:
-                # problem[2] contains the number of variables
-                # but that's currently not explicitly represented
-                return "sat", _load_sat(fp)
-            elif "cnf" in fmt or "CNF" in fmt:
-                # problem[2] has the number of variables
-                # problem[3] has the number of clauses
-                return "cnf", _load_cnf(fp)
+    if path.endswith(".v"):
+        return "v", cg.from_file(os.path.join(os.getcwd(), "input_files\\c17.v"))
+    with open(path, "r") as fp:
+        for line in fp:
+            if line.startswith("c") or line.startswith("//"):
+                continue
+            if line.startswith("p "):
+                problem = line.split()
+                if len(problem) < 2:
+                    raise ParserWarning("Malformed problem line")
+                fmt = problem[1]
+                if "sat" in fmt or "SAT" in fmt:
+                    # problem[2] contains the number of variables
+                    # but that's currently not explicitly represented
+                    return "sat", _load_sat(fp)
+                elif "cnf" in fmt or "CNF" in fmt:
+                    # problem[2] has the number of variables
+                    # problem[3] has the number of clauses
+                    return "cnf", _load_cnf(fp)
+                else:
+                    raise ParserWarning("Unknown format '{}'".format(fmt))
+            elif line.strip() == "BC1.1":
+                return "bc", _load_bc(fp)
             else:
-                raise ParserWarning("Unknown format '{}'".format(fmt))
-        elif line.strip() == "BC1.1":
-            return "bc", _load_bc(fp)
-        elif "module" in line.strip():
-            # return "v", cg.from_lib("s27")
-            return "v", cg.from_file(os.path.join(os.getcwd(), "input_files\\c17.v"))
+                raise ParserWarning(
+                    "Couldn't find a problem line before an unknown kind of line"
+                )
         else:
             raise ParserWarning(
-                "Couldn't find a problem line before an unknown kind of line"
+                "Couldn't find a problem line before the end of the file"
             )
-    else:
-        raise ParserWarning("Couldn't find a problem line before the end of the file")
-
-
-def loads(s: str):
-    """Like :func:`load`, but from a string instead of from a file."""
-    return load(io.StringIO(s))
 
 
 def _load_sat(fp: typing.TextIO):

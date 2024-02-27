@@ -23,49 +23,48 @@ class MyCLI(cmd.Cmd):
         super().__init__()
         self.current_directory = os.getcwd()
 
-    def do_list(self, line):
+    def do_list(self, filename):
         """List files and directories in the current directory."""
         files_and_dirs = os.listdir(self.current_directory + r"\\input_files")
         for item in files_and_dirs:
             print(item)
 
-    def do_choose(self, line):
+    def do_choose(self, filename):
         """Choose the input file to create a variable ordering"""
-        path = self.current_directory + r"\\input_files\\" + line
-        with open(path, "r") as file:
-            start_time = default_timer()
-            try:
-                input_format, formula = parser.load(file)
-            except parser.ParserWarning as e:
-                print(f"Warning: {e}. Please try again.")
-                return
-            parsed_time = default_timer()
-            print(
-                "the formula: "
-                + str(formula)
-                + " has been parsed in "
-                + str(parsed_time - start_time)
-                + " seconds."
-            )
+        path = self.current_directory + r"\\input_files\\" + filename
+        # with open(path, "r") as file:
+        start_time = default_timer()
+        try:
+            input_format, formula = parser.load(path)
+        except parser.ParserWarning as e:
+            print(f"Warning: {e}. Please try again.")
+            return
+        parsed_time = default_timer()
+        print(
+            "the formula: "
+            + str(formula)
+            + " has been parsed in "
+            + str(parsed_time - start_time)
+            + " seconds."
+        )
 
-            if input_format in ["bc", "v"]:
-                order_string, var_order = bc_fanin(formula)
-                order_string, var_order = bc_weight_heuristics(formula)
-            else:
-                order_string, var_order = random_order(formula)
-                order_string, var_order = fanin(formula)
+        if input_format in ["bc", "v"]:
+            order_string, var_order = bc_fanin(formula)
+            order_string, var_order = bc_weight_heuristics(formula)
+        else:
+            order_string, var_order = random_order(formula)
+            order_string, var_order = fanin(formula)
 
-            end_time = default_timer()
-            print(
-                "The order: "
-                + order_string
-                + " has been decided in "
-                + str(end_time - parsed_time)
-                + " seconds."
-            )
-            file.close()
+        end_time = default_timer()
+        print(
+            "The order: "
+            + order_string
+            + " has been decided in "
+            + str(end_time - parsed_time)
+            + " seconds."
+        )
 
-            create_bdd(input_format, formula, var_order)
+        create_bdd(input_format, formula, var_order)
 
     def do_quit(self, line):
         """Exit the CLI."""
