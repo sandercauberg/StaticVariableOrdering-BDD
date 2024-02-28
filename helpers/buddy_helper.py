@@ -1,6 +1,6 @@
 import re
 
-from dd import BDD
+from dd import BDD, autoref
 
 
 def replace_var(match):
@@ -89,6 +89,7 @@ def create_bdd(input_format, formula, var_order):
     bdd = BDD()
     bdd.declare(*var_names)
     u = bdd.false
+    print(formulas)
     if formula is None:
         for formula in formulas:
             u |= bdd.add_expr(formula)
@@ -105,18 +106,38 @@ def create_bdd(input_format, formula, var_order):
     # Set the variable order
     var_names = [f"var_{var}" for var in var_order]
     var_level_mapping = {var: level for level, var in enumerate(var_names)}
-    new_bdd = BDD(var_level_mapping)
-    new_bdd.declare(*var_names)
 
-    u = new_bdd.false
-    if formula is None:
-        for formula in formulas:
-            u |= new_bdd.add_expr(formula)
-    else:
-        u = new_bdd.add_expr(formula)
+    # Iterate over your outputs
+    new_bdd = BDD()
+    output_roots = []  # List to store roots of each output
+
+    for output_index, output_formula in enumerate(formulas):
+        bdd = BDD(var_level_mapping)
+        bdd.declare(*var_names)
+
+        u = bdd.add_expr(output_formula)
+        bdd.collect_garbage()
+
+        # Print BDD after reordering
+        print(f"\nBDD After Reordering for Output {output_index + 1}:")
+        print(bdd)
+
+        # Dump BDD to a separate file for each output
+        output_file = f"bdd_output_{output_index + 1}.png"
+        bdd.dump(output_file, [u], filetype="png")
+
+        # Copy variables and BDD nodes to the new_bdd
+        autoref.copy_vars(bdd, new_bdd)
+        u_combined = autoref.copy_bdd(u, new_bdd)
+        output_roots.append(u_combined)
+
+        # Optional: You can delete the BDD if you don't need it anymore
+        del bdd
+
+    # Print BDD after combining
+    print(f"\nBDD After Combining:")
     new_bdd.collect_garbage()
-
-    # Print BDD after reordering
-    print("\nBDD After Reordering:")
     print(new_bdd)
-    new_bdd.dump("bdd1.png", [u], filetype="png")
+
+    # Dump the combined BDD with all outputs
+    new_bdd.dump('bdd_output.png', output_roots, filetype="png")
