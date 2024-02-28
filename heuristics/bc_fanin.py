@@ -1,4 +1,5 @@
 def bc_fanin(circuit):
+    # TODO def is_output(self, node) or circuit.outputs()
     nodes_with_output_true = [
         gate for gate, data in circuit.graph.nodes.items() if data.get("output")
     ]

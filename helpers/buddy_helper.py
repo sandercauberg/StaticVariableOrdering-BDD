@@ -45,7 +45,7 @@ def get_logic_formula(circuit, gate_name, var_prefix="var_"):
             if node_data["type"] == "or":
                 return f"({'|'.join(input_formulas)})"
             if node_data["type"] == "nor":
-                return f"({' | '.join(f'!{formula}' for formula in input_formulas)})"
+                return f"!({' | '.join(f'{formula}' for formula in input_formulas)})"
             if node_data["type"] == "not":
                 return f"({''.join(input_formulas)})"
             if node_data["type"] == "xor":
@@ -99,21 +99,23 @@ def create_bdd(input_format, formula, var_order):
     # Print BDD before reordering
     print("BDD Before Reordering:")
     print(bdd)
+    bdd.dump("bdd.png", [u], filetype="png")
     # print("Number of satisfying assignments: " + str(len(bdd)))
 
     # Set the variable order
     var_names = [f"var_{var}" for var in var_order]
-    bdd = BDD()
-    bdd.declare(*var_names)
+    new_bdd = BDD()
+    new_bdd.declare(*var_names)
 
-    u = bdd.false
+    u = new_bdd.false
     if formula is None:
         for formula in formulas:
-            u |= bdd.add_expr(formula)
+            u |= new_bdd.add_expr(formula)
     else:
-        u = bdd.add_expr(formula)
-    bdd.collect_garbage()
+        u = new_bdd.add_expr(formula)
+    new_bdd.collect_garbage()
 
     # Print BDD after reordering
     print("\nBDD After Reordering:")
-    print(bdd)
+    print(new_bdd)
+    bdd.dump("bdd1.png", [u], filetype="png")

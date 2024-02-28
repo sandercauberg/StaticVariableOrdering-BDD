@@ -32,7 +32,6 @@ class MyCLI(cmd.Cmd):
     def do_choose(self, filename):
         """Choose the input file to create a variable ordering"""
         path = os.path.join(self.current_directory, "input_files", filename)
-        # with open(path, "r") as file:
         start_time = default_timer()
         try:
             input_format, formula = parser.load(path)
