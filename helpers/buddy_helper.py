@@ -104,7 +104,8 @@ def create_bdd(input_format, formula, var_order):
 
     # Set the variable order
     var_names = [f"var_{var}" for var in var_order]
-    new_bdd = BDD()
+    var_level_mapping = {var: level for level, var in enumerate(var_names)}
+    new_bdd = BDD(var_level_mapping)
     new_bdd.declare(*var_names)
 
     u = new_bdd.false
@@ -118,4 +119,4 @@ def create_bdd(input_format, formula, var_order):
     # Print BDD after reordering
     print("\nBDD After Reordering:")
     print(new_bdd)
-    bdd.dump("bdd1.png", [u], filetype="png")
+    new_bdd.dump("bdd1.png", [u], filetype="png")
