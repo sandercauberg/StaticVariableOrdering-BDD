@@ -49,7 +49,8 @@ class MyCLI(cmd.Cmd):
 
         if input_format in ["bc", "v"]:
             order_string, var_order = bc_fanin(formula)
-            # order_string, var_order = bc_weight_heuristics(formula)
+            order_string, var_order = random_order(formula)
+            order_string, var_order = bc_weight_heuristics(formula)
         else:
             order_string, var_order = random_order(formula)
             order_string, var_order = fanin(formula)

@@ -1,6 +1,6 @@
 import re
 
-from dd import BDD, autoref
+from dd import BDD
 
 
 def replace_var(match):
@@ -66,7 +66,6 @@ def create_bdd(input_format, formula, var_order):
             for output_gate in formula.output_gates
         ]
         formulas = [transform_graph(output) for output in outputs]
-        formula = None
     elif input_format == "v":
         var_names = [f"var_{var}" for var in formula.inputs]
         outputs = [
@@ -74,7 +73,6 @@ def create_bdd(input_format, formula, var_order):
             for output_gate in formula.output_gates
         ]
         formulas = [transform_graph(output) for output in outputs]
-        formula = None
     else:
         var_names = [f"var_{var}" for var in formula.extract_variables()]
         formula = (
@@ -85,59 +83,37 @@ def create_bdd(input_format, formula, var_order):
         )
         for i in range(10):
             formula = formula.replace(str(i), f"var_{i}")
+        formulas.append(formula)
 
     bdd = BDD()
     bdd.declare(*var_names)
-    u = bdd.false
-    print(formulas)
-    if formula is None:
-        for formula in formulas:
-            u |= bdd.add_expr(formula)
-    else:
-        u = bdd.add_expr(formula)
+    roots = []
+
+    for formula in formulas:
+        root = bdd.add_expr(formula)
+        roots.append(root)
     bdd.collect_garbage()
 
     # Print BDD before reordering
     print("BDD Before Reordering:")
     print(bdd)
-    bdd.dump("bdd.png", [u], filetype="png")
+    bdd.dump("bdd.png", roots=roots, filetype="png")
     # print("Number of satisfying assignments: " + str(len(bdd)))
 
     # Set the variable order
     var_names = [f"var_{var}" for var in var_order]
-    var_level_mapping = {var: level for level, var in enumerate(var_names)}
 
     # Iterate over your outputs
     new_bdd = BDD()
-    output_roots = []  # List to store roots of each output
+    new_bdd.declare(*var_names)
+    new_bdd_roots = []
 
-    for output_index, output_formula in enumerate(formulas):
-        bdd = BDD(var_level_mapping)
-        bdd.declare(*var_names)
-
-        u = bdd.add_expr(output_formula)
-        bdd.collect_garbage()
-
-        # Print BDD after reordering
-        print(f"\nBDD After Reordering for Output {output_index + 1}:")
-        print(bdd)
-
-        # Dump BDD to a separate file for each output
-        output_file = f"bdd_output_{output_index + 1}.png"
-        bdd.dump(output_file, [u], filetype="png")
-
-        # Copy variables and BDD nodes to the new_bdd
-        autoref.copy_vars(bdd, new_bdd)
-        u_combined = autoref.copy_bdd(u, new_bdd)
-        output_roots.append(u_combined)
-
-        # Optional: You can delete the BDD if you don't need it anymore
-        del bdd
-
-    # Print BDD after combining
-    print(f"\nBDD After Combining:")
+    for formula in formulas:
+        root = new_bdd.add_expr(formula)
+        new_bdd_roots.append(root)
     new_bdd.collect_garbage()
-    print(new_bdd)
 
-    # Dump the combined BDD with all outputs
-    new_bdd.dump('bdd_output.png', output_roots, filetype="png")
+    # Print BDD after reordering
+    print("BDD Before Reordering:")
+    print(new_bdd)
+    new_bdd.dump("bdd_output.png", roots=new_bdd_roots, filetype="png")
