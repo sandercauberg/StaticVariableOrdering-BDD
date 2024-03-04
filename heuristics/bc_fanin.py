@@ -47,6 +47,8 @@ def bc_fanin(circuit):
         ),
     )
 
+    circuit.remove("imaginary_output")
+
     result_string = " < ".join(map(str, sorted_inputs))
 
     return result_string, sorted_inputs
