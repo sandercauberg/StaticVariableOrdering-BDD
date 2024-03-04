@@ -1,5 +1,6 @@
 import cmd
 import os
+import argparse
 from timeit import default_timer
 
 import parser
@@ -13,9 +14,11 @@ from heuristics.random import random_order
 
 class MyCLI(cmd.Cmd):
     prompt = ">> "
-    intro = """Welcome to MyCLI. Type "help" for available commands.
+    intro = """
+        Type "help" for available commands.
         Type "list" for available input files.
         Type "choose {filename}" to create an ordering from the input file.
+            Add -dump to dump the BDDs to PNG files.
         Type "quit" to quit.
         """
 
@@ -29,8 +32,16 @@ class MyCLI(cmd.Cmd):
         for item in files_and_dirs:
             print(item)
 
-    def do_choose(self, filename):
+    def do_choose(self, arg):
         """Choose the input file to create a variable ordering"""
+        parse = argparse.ArgumentParser(description="description_ARGPARSE")
+        parse.add_argument("filename", help="Name of the input file")
+        parse.add_argument("-dump", action="store_true", help="Dump BDDs to PNG files")
+        args = parse.parse_args(arg.split())
+
+        filename = args.filename
+        dump = args.dump
+
         path = os.path.join(self.current_directory, "input_files", filename)
         start_time = default_timer()
         try:
@@ -48,8 +59,8 @@ class MyCLI(cmd.Cmd):
         )
 
         if input_format in ["bc", "v"]:
-            order_string, var_order = bc_fanin(formula)
-            order_string, var_order = random_order(formula)
+            # order_string, var_order = bc_fanin(formula)
+            # order_string, var_order = random_order(formula)
             order_string, var_order = bc_weight_heuristics(formula)
         else:
             order_string, var_order = random_order(formula)
@@ -64,7 +75,7 @@ class MyCLI(cmd.Cmd):
             + " seconds."
         )
 
-        create_bdd(input_format, formula, var_order)
+        create_bdd(input_format, formula, var_order, dump)
 
     def do_quit(self, line):
         """Exit the CLI."""
