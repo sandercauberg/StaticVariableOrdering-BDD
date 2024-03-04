@@ -19,6 +19,10 @@ class MyCLI(cmd.Cmd):
         Type "list" for available input files.
         Type "choose {filename}" to create an ordering from the input file.
             Add -dump to dump the BDDs to PNG files.
+            Add -heuristic {heuristic} to choose a specific heuristic.
+                Available heuristics for boolean circuits: weight, fanin.
+                Available heuristics for cnf/sat: fanin.
+                If not specified or non-existing, random ordering will be chosen.
         Type "quit" to quit.
         """
 
@@ -37,12 +41,14 @@ class MyCLI(cmd.Cmd):
         parse = argparse.ArgumentParser(description="description_ARGPARSE")
         parse.add_argument("filename", help="Name of the input file")
         parse.add_argument("-dump", action="store_true", help="Dump BDDs to PNG files")
-        args = parse.parse_args(arg.split())
+        parse.add_argument("-heuristic", help="Choose a specific heuristic")
 
-        filename = args.filename
-        dump = args.dump
+        try:
+            args = parse.parse_args(arg.split())
+        except SystemExit:
+            return
 
-        path = os.path.join(self.current_directory, "input_files", filename)
+        path = os.path.join(self.current_directory, "input_files", args.filename)
         start_time = default_timer()
         try:
             input_format, formula = parser.load(path)
@@ -59,12 +65,17 @@ class MyCLI(cmd.Cmd):
         )
 
         if input_format in ["bc", "v"]:
-            # order_string, var_order = bc_fanin(formula)
-            # order_string, var_order = random_order(formula)
-            order_string, var_order = bc_weight_heuristics(formula)
+            if args.heuristic == "fanin":
+                order_string, var_order = bc_fanin(formula)
+            elif args.heuristic == "weight":
+                order_string, var_order = bc_weight_heuristics(formula)
+            else:
+                order_string, var_order = random_order(formula)
         else:
-            order_string, var_order = random_order(formula)
-            order_string, var_order = fanin(formula)
+            if args.heuristic == "fanin":
+                order_string, var_order = fanin(formula)
+            else:
+                order_string, var_order = random_order(formula)
 
         end_time = default_timer()
         print(
@@ -75,7 +86,7 @@ class MyCLI(cmd.Cmd):
             + " seconds."
         )
 
-        create_bdd(input_format, formula, var_order, dump)
+        create_bdd(input_format, formula, var_order, args.dump)
 
     def do_quit(self, line):
         """Exit the CLI."""
