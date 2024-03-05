@@ -1,16 +1,7 @@
 def bc_fanin(circuit):
-    # TODO def is_output(self, node) or circuit.outputs()
-    nodes_with_output_true = [
-        gate for gate, data in circuit.graph.nodes.items() if data.get("output")
-    ]
-    nodes_with_input_true = [
-        node
-        for node, data in circuit.graph.nodes.items()
-        if data.get("type") == "input"
-    ]
-    circuit.inputs = nodes_with_input_true
-    circuit.output_gates = nodes_with_output_true
-    output_gate = circuit.output_gates[0]
+    circuit.inputs = circuit.inputs()
+    circuit.output_gates = circuit.outputs()
+    output_gate = next(iter(circuit.output_gates))
 
     if not circuit.output_gates:
         raise ValueError("Output gates are not defined.")

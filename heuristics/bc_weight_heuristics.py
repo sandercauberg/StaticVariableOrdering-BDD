@@ -1,14 +1,6 @@
 def bc_weight_heuristics(circuit):
-    nodes_with_output_true = [
-        gate for gate, data in circuit.graph.nodes.items() if data.get("output")
-    ]
-    nodes_with_input_true = [
-        node
-        for node, data in circuit.graph.nodes.items()
-        if data.get("type") == "input"
-    ]
-    circuit.inputs = nodes_with_input_true
-    circuit.output_gates = nodes_with_output_true
+    circuit.inputs = circuit.inputs()
+    circuit.output_gates = circuit.outputs()
     input_weights = {input_var: 0 for input_var in circuit.inputs}
 
     def calculate_weights(node, visited=None):
