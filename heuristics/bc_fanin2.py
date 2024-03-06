@@ -6,8 +6,14 @@ def initialize_visited(circuit):
     circuit.inputs = circuit.inputs()
     circuit.output_gates = circuit.outputs()
 
+    circuit.output_gate = next(iter(circuit.output_gates))
+
     if not circuit.output_gates:
         raise ValueError("Output gates are not defined.")
+
+    if len(circuit.output_gates) > 1:
+        circuit.add("imaginary_output", "and", fanin=circuit.output_gates, output=True)
+        circuit.output_gate = "imaginary_output"
 
 
 def mark_visited(circuit, node):
@@ -22,12 +28,11 @@ def is_visited(circuit, node):
 
 def bc_fanin2(circuit, node=None, order=None):
     # Initially, the output node should be the place to start from
-    # TODO imaginary node for multi-output circuits
     if order is None:
         order = []
     if node is None:
         initialize_visited(circuit)
-        node = next(iter(circuit.outputs()))
+        node = circuit.output_gate
     mark_visited(circuit, node)
 
     if node in circuit.inputs:
@@ -44,6 +49,8 @@ def bc_fanin2(circuit, node=None, order=None):
         for w in sorted_predecessors:
             if not is_visited(circuit, w):
                 bc_fanin2(circuit, w, order)
+
+    circuit.remove("imaginary_output")
 
     result_string = " < ".join(map(str, order))
 
