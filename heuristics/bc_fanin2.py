@@ -1,10 +1,13 @@
+from helpers.buddy_helper import get_ordered_inputs, get_ordered_outputs
+
+
 def initialize_visited(circuit):
     """Initialize 'visited' property for each node in the circuit."""
     for node in circuit.graph.nodes:
         circuit.graph.nodes[node]["visited"] = False
 
-    circuit.inputs = circuit.inputs()
-    circuit.output_gates = circuit.outputs()
+    circuit.inputs = get_ordered_inputs(circuit)
+    circuit.output_gates = get_ordered_outputs(circuit)
 
     circuit.output_gate = next(iter(circuit.output_gates))
 
@@ -41,9 +44,14 @@ def bc_fanin2(circuit, node=None, order=None):
             order.append(node)
     else:
         predecessors = circuit.graph._pred[node]
-        # Sort predecessors by their fanin depths in descending order
+        # Sort predecessors by fanin depth primarily and input order secondarily
         sorted_predecessors = sorted(
-            predecessors, key=lambda x: circuit.fanin_depth(x), reverse=True
+            predecessors,
+            key=lambda x: (
+                circuit.fanin_depth(x),
+                -circuit.inputs.index(x) if x in circuit.inputs else float("inf"),
+            ),
+            reverse=True,
         )
 
         for w in sorted_predecessors:
