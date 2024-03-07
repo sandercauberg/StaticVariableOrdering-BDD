@@ -1,4 +1,4 @@
-from helpers.buddy_helper import get_ordered_inputs, get_ordered_outputs
+from meta.circuit import CustomCircuit
 
 
 def initialize_visited(circuit):
@@ -6,8 +6,8 @@ def initialize_visited(circuit):
     for node in circuit.graph.nodes:
         circuit.graph.nodes[node]["visited"] = False
 
-    circuit.inputs = get_ordered_inputs(circuit)
-    circuit.output_gates = get_ordered_outputs(circuit)
+    circuit.inputs = CustomCircuit.get_ordered_inputs(circuit)
+    circuit.output_gates = CustomCircuit.get_ordered_outputs(circuit)
 
     circuit.output_gate = next(iter(circuit.output_gates))
 

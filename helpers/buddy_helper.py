@@ -56,21 +56,6 @@ def get_logic_formula(circuit, gate_name, var_prefix="var_"):
     return ""
 
 
-def get_ordered_inputs(circuit):
-    """Get inputs in the order they are defined in the file."""
-    # TODO place in circuit helper/extension class
-    nodes = circuit.graph.nodes
-    input_nodes = [node for node, data in nodes.items() if node in circuit.inputs()]
-    return input_nodes
-
-
-def get_ordered_outputs(circuit):
-    """Get outputs in the order they are defined in the file."""
-    nodes = circuit.graph.nodes
-    output_nodes = [node for node, data in nodes.items() if node in circuit.outputs()]
-    return output_nodes
-
-
 def create_bdd(input_format, formula, var_order, dump=False):
     # Create BDD with BuDDy
     formulas = []
