@@ -37,7 +37,7 @@ make test
 
 ### Run the application
 
-Finally run the django dev server:
+Finally run the application:
 ```bash
 make run
 ```
