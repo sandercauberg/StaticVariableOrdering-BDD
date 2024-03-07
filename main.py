@@ -72,6 +72,8 @@ class MyCLI(cmd.Cmd):
                 order_string, var_order = bc_fanin2(formula)
             elif args.heuristic == "weight":
                 order_string, var_order = bc_weight_heuristics(formula)
+            elif args.heuristic == "dependent":
+                order_string, var_order = bc_weight_heuristics(formula)
             else:
                 order_string, var_order = random_order(formula)
         else:
