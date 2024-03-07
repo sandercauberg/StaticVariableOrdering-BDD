@@ -56,6 +56,15 @@ def get_logic_formula(circuit, gate_name, var_prefix="var_"):
     return ""
 
 
+def count_satisfying_assignments(bdd, roots):
+    conjunction = bdd.true
+    for root in roots:
+        conjunction = bdd.apply("and", conjunction, root)
+    # for assignment in bdd.pick_iter(conjunction):
+    #     print("Satisfying Assignment:", assignment)
+    return bdd.count(conjunction)
+
+
 def create_bdd(input_format, formula, var_order, dump=False):
     # Create BDD with BuDDy
     formulas = []
@@ -90,8 +99,10 @@ def create_bdd(input_format, formula, var_order, dump=False):
     # Print BDD before reordering
     print("BDD Before Reordering:")
     print(bdd)
-    if dump:
-        bdd.dump("bdd.png", roots=roots, filetype="png")
+    print(
+        "Number of satisfying assignments: "
+        + str(count_satisfying_assignments(bdd, roots))
+    )
 
     # Set the variable order
     var_names = [f"var_{var}" for var in var_order]
@@ -108,5 +119,13 @@ def create_bdd(input_format, formula, var_order, dump=False):
     # Print BDD after reordering
     print("BDD Before Reordering:")
     print(new_bdd)
+    print(
+        "Number of satisfying assignments: "
+        + str(count_satisfying_assignments(new_bdd, new_bdd_roots))
+    )
+    assert count_satisfying_assignments(bdd, roots) == count_satisfying_assignments(
+        new_bdd, new_bdd_roots
+    )
     if dump:
+        bdd.dump("bdd.png", roots=roots, filetype="png")
         new_bdd.dump("bdd_output.png", roots=new_bdd_roots, filetype="png")
