@@ -13,3 +13,9 @@ class CustomCircuit(cg.Circuit):
         nodes = self.graph.nodes
         output_nodes = [node for node, data in nodes.items() if node in self.outputs()]
         return output_nodes
+
+    def get_gates(self):
+        """Get inputs in the order they are defined in the file."""
+        nodes = self.graph.nodes
+        gates = [node for node, data in nodes.items() if node not in self.inputs()]
+        return gates
