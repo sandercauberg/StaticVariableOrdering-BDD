@@ -25,6 +25,17 @@ class Formula:
             variables.update(self.child.extract_variables())
         return variables
 
+    def extract_negated_variables(self):
+        negated_variables = set()
+        if isinstance(self, Not) and isinstance(self.child, Variable):
+            negated_variables.add(self.child)
+        elif isinstance(self, BinOp):
+            for child in self.children:
+                negated_variables.update(child.extract_negated_variables())
+        elif isinstance(self, Not):
+            negated_variables.update(self.child.extract_negated_variables())
+        return negated_variables
+
 
 class BinOp(Formula):
     def __init__(self, *children):
