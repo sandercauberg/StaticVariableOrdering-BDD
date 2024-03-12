@@ -2,6 +2,21 @@ from meta.circuit import CustomCircuit
 from meta.formula import Not
 
 
+def extract_literal(formula, literals):
+    dependencies_list = [
+        (
+            variable,
+            sum(variable in child.extract_variables() for child in formula.children),
+        )
+        for variable in literals
+    ]
+
+    sorted_dependencies = sorted(dependencies_list, key=lambda x: x[1], reverse=True)
+    result = [item[0] for item in sorted_dependencies]
+
+    return result
+
+
 def create_boolean_circuit(cnf_formula):
     circuit = CustomCircuit()
     literals = cnf_formula.extract_variables()
@@ -10,7 +25,8 @@ def create_boolean_circuit(cnf_formula):
 
     iteration_count = 0
     while literals:
-        literal = literals.pop()
+        literals = extract_literal(cnf_formula, literals)
+        literal = literals.pop(0)
         in_set = set()
 
         for clause in get_negation_clauses(cnf_formula, literal, covered_clauses):
@@ -32,7 +48,6 @@ def create_boolean_circuit(cnf_formula):
         if tup in covered_clauses:
             covered.append(clause)
         else:
-            # uncovered.append(clause)
             if len(tup) > 1:
                 yi = tuple(f"var_{var}" for var in clause)
                 circuit.add(str(clause), "or", fanin=list(yi))
