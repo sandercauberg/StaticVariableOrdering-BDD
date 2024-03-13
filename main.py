@@ -6,10 +6,7 @@ from timeit import default_timer
 import parser
 from helpers.buddy_helper import create_bdd
 
-from heuristics.bc_fanin import bc_fanin
-from heuristics.bc_fanin2 import bc_fanin2
-from heuristics.bc_weight_heuristics import bc_weight_heuristics
-from heuristics.fanin import fanin
+from heuristics import heuristics
 from heuristics.random import random_order
 
 
@@ -65,22 +62,29 @@ class MyCLI(cmd.Cmd):
             + " seconds."
         )
 
-        if input_format in ["bc", "v"]:
-            if args.heuristic == "fanin":
-                order_string, var_order = bc_fanin(formula)
-            elif args.heuristic == "fanin2":
-                order_string, var_order = bc_fanin2(formula)
-            elif args.heuristic == "weight":
-                order_string, var_order = bc_weight_heuristics(formula)
-            elif args.heuristic == "dependent":
-                order_string, var_order = bc_weight_heuristics(formula)
-            else:
+        heuristic_type = None
+        if args.heuristic:
+            heuristic_type = args.heuristic
+
+        if input_format in heuristics.heuristics:
+            heuristic_options = heuristics.heuristics[input_format]
+
+            if heuristic_type in heuristic_options:
+                module_path = heuristic_options[heuristic_type]
+                heuristic_module = __import__(module_path, fromlist=[""])
+                order_string, var_order = heuristic_module.calculate(formula)
+            elif heuristic_type is None:
+                print("No heuristic chosen, using random heuristics.")
                 order_string, var_order = random_order(formula)
+            else:
+                print(
+                    f"Heuristic '{heuristic_type}' is not available for "
+                    f"'{input_format}' problem type."
+                )
+                return
         else:
-            if args.heuristic == "fanin":
-                order_string, var_order = fanin(formula)
-            else:
-                order_string, var_order = random_order(formula)
+            print(f"No heuristics available for '{input_format}' problem type.")
+            return
 
         end_time = default_timer()
         print(
@@ -98,6 +102,5 @@ class MyCLI(cmd.Cmd):
         return True
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == "__main__":
     MyCLI().cmdloop()
