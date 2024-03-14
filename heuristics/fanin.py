@@ -1,4 +1,4 @@
-def fanin(formula):
+def calculate(formula):
     vars = formula.extract_variables()
 
     dependencies_list = []

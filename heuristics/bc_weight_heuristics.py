@@ -1,7 +1,7 @@
 from meta.circuit import CustomCircuit
 
 
-def bc_weight_heuristics(circuit):
+def calculate(circuit):
     circuit.inputs = CustomCircuit.get_ordered_inputs(circuit)
     circuit.output_gates = CustomCircuit.get_ordered_outputs(circuit)
     input_weights = {input_var: 0 for input_var in circuit.inputs}

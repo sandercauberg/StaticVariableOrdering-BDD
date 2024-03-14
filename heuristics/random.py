@@ -1,7 +1,7 @@
 import random
 
 
-def random_order(formula):
+def calculate(formula):
     if hasattr(formula, "extract_variables") and callable(
         getattr(formula, "extract_variables")
     ):

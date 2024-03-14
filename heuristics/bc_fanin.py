@@ -1,4 +1,4 @@
-def bc_fanin(circuit):
+def calculate(circuit):
     circuit.inputs = circuit.inputs()
     circuit.output_gates = circuit.outputs()
     output_gate = next(iter(circuit.output_gates))

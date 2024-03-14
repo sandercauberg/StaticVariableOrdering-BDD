@@ -29,7 +29,7 @@ def is_visited(circuit, node):
     return circuit.graph.nodes.get(node)["visited"]
 
 
-def bc_fanin2(circuit, node=None, order=None):
+def calculate(circuit, node=None, order=None):
     # Initially, the output node should be the place to start from
     if order is None:
         order = []
@@ -56,7 +56,7 @@ def bc_fanin2(circuit, node=None, order=None):
 
         for w in sorted_predecessors:
             if not is_visited(circuit, w):
-                bc_fanin2(circuit, w, order)
+                calculate(circuit, w, order)
 
     circuit.remove("imaginary_output")
 

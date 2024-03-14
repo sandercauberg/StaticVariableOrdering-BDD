@@ -7,7 +7,6 @@ import parser
 from helpers.buddy_helper import create_bdd
 
 from heuristics import heuristics
-from heuristics.random import random_order
 
 
 class MyCLI(cmd.Cmd):
@@ -71,17 +70,18 @@ class MyCLI(cmd.Cmd):
 
             if heuristic_type in heuristic_options:
                 module_path = heuristic_options[heuristic_type]
-                heuristic_module = __import__(module_path, fromlist=[""])
-                order_string, var_order = heuristic_module.calculate(formula)
             elif heuristic_type is None:
                 print("No heuristic chosen, using random heuristics.")
-                order_string, var_order = random_order(formula)
+                module_path = "heuristics.random"
             else:
                 print(
                     f"Heuristic '{heuristic_type}' is not available for "
                     f"'{input_format}' problem type."
                 )
                 return
+
+            heuristic_module = __import__(module_path, fromlist=[""])
+            order_string, var_order = heuristic_module.calculate(formula)
         else:
             print(f"No heuristics available for '{input_format}' problem type.")
             return
