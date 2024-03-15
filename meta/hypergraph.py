@@ -52,16 +52,16 @@ class Hypergraph:
         else:
             return self.node_links[obj]
 
-    def neighbors(self, obj):
+    def neighbors(self, node):
         """
         Return all neighbors adjacent to the given node.
         """
         neighbors = set([])
 
-        for e in self.node_links[obj]:
+        for e in self.node_links[node]:
             neighbors.update(set(self.edge_links[e]))
 
-        return list(neighbors - {obj})
+        return list(neighbors - {node})
 
     def has_node(self, node):
         """
@@ -78,6 +78,13 @@ class Hypergraph:
         else:
             raise ValueError("Node %s already in graph" % node)
 
+    def add_nodes(self, nodelist):
+        """
+        Add given nodes to the hypergraph.
+        """
+        for each in nodelist:
+            self.add_node(each)
+
     def del_node(self, node):
         """
         Delete a given node from the hypergraph.
@@ -92,24 +99,36 @@ class Hypergraph:
         """
         Add given hyperedge to the hypergraph.
         """
-        if not isinstance(hyperedge, tuple):
-            raise TypeError("Hyperedge must be a tuple")
         if hyperedge not in self.edge_links:
             self.edge_links[hyperedge] = []
             if label is not None:
                 self.edge_labels[hyperedge] = label
+            for node in hyperedge:
+                if node in self.nodes():
+                    self.link(node, hyperedge)
+        else:
+            raise ValueError("Edge %s already in graph" % hyperedge)
 
     def add_hyperedges(self, edgelist):
         """
-        Add given hyperedges to the hypergraph.
+        Add given hyperedges to the hypergraph, both with and without labels.
         """
-        for edge, label in edgelist:
-            self.add_hyperedge(edge, label=label if label else None)
+        for item in edgelist:
+            if isinstance(item, tuple):
+                edge, label = item
+                self.add_hyperedge(edge, label=label)
+            else:
+                edge = item
+                self.add_hyperedge(edge)
 
     def del_hyperedge(self, hyperedge):
         """
         Delete the given hyperedge.
         """
+        # If a label is associated with the hyperedge, we select said hyperedge
+        hyperedge = next(
+            key for key, value in self.edge_labels.items() if value == hyperedge
+        )
         if hyperedge in self.hyperedges():
             for n in self.edge_links[hyperedge]:
                 self.node_links[n].remove(hyperedge)
@@ -120,7 +139,12 @@ class Hypergraph:
         """
         Link given node and hyperedge.
         """
-        hyperedge = hyperedge[0]
+        if (
+            isinstance(hyperedge, tuple)
+            and len(hyperedge) == 1
+            and isinstance(hyperedge[0], tuple)
+        ):
+            hyperedge = hyperedge[0]
 
         if hyperedge not in self.node_links[node]:
             self.edge_links[hyperedge].append(node)
@@ -132,5 +156,8 @@ class Hypergraph:
         """
         Unlink given node and hyperedge.
         """
-        self.node_links[node].remove(hyperedge)
-        self.edge_links[hyperedge].remove(node)
+        if hyperedge in self.node_links[node]:
+            self.node_links[node].remove(hyperedge)
+            self.edge_links[hyperedge].remove(node)
+        else:
+            raise ValueError("Link (%s, %s) is not in graph" % (node, hyperedge))
