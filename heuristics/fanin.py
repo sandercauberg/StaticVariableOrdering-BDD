@@ -3,10 +3,15 @@ def calculate(formula):
 
     dependencies_list = []
     for variable in vars:
+        visited_variables = set()
         dependencies = 0
+        visited_variables.add(variable)
+
         for child in formula.children:
-            if variable in child.extract_variables():
-                dependencies += len(child.extract_variables() - {variable})
+            child_variables = child.extract_variables()
+            if variable in child_variables:
+                dependencies += len(child_variables - visited_variables)
+                visited_variables.update(child_variables)
         dependencies_list.append((variable, dependencies))
 
     dependencies_list.sort(key=lambda x: x[1], reverse=True)

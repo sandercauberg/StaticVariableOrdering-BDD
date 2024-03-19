@@ -2,7 +2,7 @@ from meta.circuit import CustomCircuit
 from meta.formula import Not, And, Or, Variable
 
 
-def extract_literals_and_dependencies(formula, literals):
+def extract_literals_on_occurrences(formula, literals):
     dependencies_list = [
         (
             variable,
@@ -10,6 +10,28 @@ def extract_literals_and_dependencies(formula, literals):
         )
         for variable in literals
     ]
+
+    sorted_dependencies = sorted(dependencies_list, key=lambda x: x[1], reverse=True)
+    result = [item[0] for item in sorted_dependencies]
+
+    return result
+
+
+def extract_literals_on_dependencies(formula, literals):
+    dependencies_list = []
+
+    for variable in literals:
+        visited_variables = set()
+        dependencies = 0
+        visited_variables.add(variable)
+
+        for child in formula.children:
+            child_variables = child.extract_variables()
+            if variable in child_variables:
+                dependencies += len(child_variables - visited_variables)
+                visited_variables.update(child_variables)
+
+        dependencies_list.append((variable, dependencies))
 
     sorted_dependencies = sorted(dependencies_list, key=lambda x: x[1], reverse=True)
     result = [item[0] for item in sorted_dependencies]
@@ -46,7 +68,7 @@ def cnf2bc(cnf_formula):
     circuit = CustomCircuit()
     literals = cnf_formula.extract_variables()
     [circuit.add(f"var_{var}", node_type="input") for var in literals]
-    literals = extract_literals_and_dependencies(cnf_formula, literals)
+    literals = extract_literals_on_occurrences(cnf_formula, literals)
     literal = literals.pop(0)
 
     formula = factor_out(cnf_formula, literal)
