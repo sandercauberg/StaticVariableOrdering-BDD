@@ -2,7 +2,7 @@ from meta.circuit import CustomCircuit
 from meta.formula import Not, And, Or, Variable
 
 
-def extract_literal(formula, literals):
+def extract_literals_and_dependencies(formula, literals):
     dependencies_list = [
         (
             variable,
@@ -46,7 +46,7 @@ def cnf2bc(cnf_formula):
     circuit = CustomCircuit()
     literals = cnf_formula.extract_variables()
     [circuit.add(f"var_{var}", node_type="input") for var in literals]
-    literals = extract_literal(cnf_formula, literals)
+    literals = extract_literals_and_dependencies(cnf_formula, literals)
     literal = literals.pop(0)
 
     formula = factor_out(cnf_formula, literal)
