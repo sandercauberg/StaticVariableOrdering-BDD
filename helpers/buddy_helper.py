@@ -76,15 +76,16 @@ def create_bdd(input_format, formula, var_order, dump=False):
         ]
         formulas = [transform_graph(output) for output in outputs]
     else:
-        var_names = [f"var_{var}" for var in formula.extract_variables()]
+        variables = formula.extract_variables()
+        var_names = [f"var_{var}" for var in variables]
         formula = (
             str(formula)
             .replace("∨", r" \/ ")
             .replace("∧", r" /\ ")
             .replace("¬", "!")[1:-1]
         )
-        for i in range(10):
-            formula = formula.replace(str(i), f"var_{i}")
+        for var in variables:
+            formula = re.sub(r"\b" + re.escape(str(var)) + r"\b", f"var_{var}", formula)
         formulas.append(formula)
 
     bdd = BDD()
