@@ -128,4 +128,11 @@ def to_bc(formula, circuit):
             return gate_name
 
     build_circuit(formula)
+    nodes = circuit.graph.nodes
+    successors = circuit.graph._succ
+
+    gates = [node for node in nodes if node not in successors or not successors[node]]
+    for gate in gates:
+        get_node = circuit.graph.nodes.get(gate)
+        get_node["output"] = True
     return circuit

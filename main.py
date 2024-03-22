@@ -61,7 +61,7 @@ class MyCLI(cmd.Cmd):
             + str(parsed_time - start_time)
             + " seconds."
         )
-        cnf2bc(formula)
+        formula = cnf2bc(formula)
 
         heuristic_type = None
         if args.heuristic:

@@ -12,6 +12,6 @@ heuristics_sat = {"fanin": "heuristics.fanin"}
 heuristics = {
     "bc": heuristics_boolean_circuits,
     "v": heuristics_boolean_circuits,
-    "cnf": heuristics_cnf,
+    "cnf": heuristics_cnf | heuristics_boolean_circuits,
     "sat": heuristics_sat,
 }
