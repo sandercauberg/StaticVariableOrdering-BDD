@@ -39,29 +39,53 @@ def extract_literals_on_dependencies(formula, literals):
     return result
 
 
-def factor_out(formula, literal):
+def factor_out(formula, literals):
     positive_factors = []
     negative_factors = []
     unprocessed_clauses = []
+    literal = literals.pop(0)
 
     for clause in formula.children:
-        if literal in clause.children:
+        if (
+            literal in clause.children
+            and len(clause.children) > 1
+            and len(literals) >= 1
+        ):
             positive_factors.append(
                 Or(*(term for term in clause.children if term != literal))
             )
-        elif Not(literal) in clause.children:
+        elif (
+            Not(literal) in clause.children
+            and len(clause.children) > 1
+            and len(literals) >= 1
+        ):
             negative_factors.append(
                 Or(*(term for term in clause.children if term != Not(literal)))
             )
         else:
             unprocessed_clauses.append(clause)
 
-    positive_result = Or(literal, And(*positive_factors)) if positive_factors else True
+    positive_result = (
+        Or(literal, factor_out(And(*positive_factors), literals))
+        if positive_factors
+        else None
+    )
     negative_result = (
-        Or(Not(literal), And(*negative_factors)) if negative_factors else True
+        Or(Not(literal), factor_out(And(*negative_factors), literals))
+        if negative_factors
+        else None
     )
 
-    return And(positive_result, negative_result, *unprocessed_clauses)
+    if negative_result and positive_result:
+        final_formula = And(positive_result, negative_result, *unprocessed_clauses)
+    elif positive_result:
+        final_formula = And(positive_result, *unprocessed_clauses)
+    elif negative_result:
+        final_formula = And(negative_result, *unprocessed_clauses)
+    else:
+        final_formula = And(*unprocessed_clauses)
+
+    return final_formula
 
 
 def cnf2bc(cnf_formula):
@@ -69,9 +93,8 @@ def cnf2bc(cnf_formula):
     literals = cnf_formula.extract_variables()
     [circuit.add(f"var_{var}", node_type="input") for var in literals]
     literals = extract_literals_on_occurrences(cnf_formula, literals)
-    literal = literals.pop(0)
 
-    formula = factor_out(cnf_formula, literal)
+    formula = factor_out(cnf_formula, literals)
     circuit = CustomCircuit()
     literals = formula.extract_variables()
     [circuit.add(f"var_{var}", node_type="input") for var in literals]

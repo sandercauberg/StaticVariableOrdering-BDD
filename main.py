@@ -1,10 +1,11 @@
 import cmd
 import os
 import argparse
-from timeit import default_timer
+import time
 
 import parser
 from helpers.buddy_helper import create_bdd
+from helpers.cnf2bc import cnf2bc
 
 from heuristics import heuristics
 
@@ -46,13 +47,13 @@ class MyCLI(cmd.Cmd):
             return
 
         path = os.path.join(self.current_directory, "input_files", args.filename)
-        start_time = default_timer()
+        start_time = time.perf_counter()
         try:
             input_format, formula = parser.load(path)
         except parser.ParserWarning as e:
             print(f"Warning: {e}. Please try again.")
             return
-        parsed_time = default_timer()
+        parsed_time = time.perf_counter()
         print(
             "the formula: "
             + str(formula)
@@ -60,6 +61,7 @@ class MyCLI(cmd.Cmd):
             + str(parsed_time - start_time)
             + " seconds."
         )
+        cnf2bc(formula)
 
         heuristic_type = None
         if args.heuristic:
@@ -86,7 +88,7 @@ class MyCLI(cmd.Cmd):
             print(f"No heuristics available for '{input_format}' problem type.")
             return
 
-        end_time = default_timer()
+        end_time = time.perf_counter()
         print(
             "The order: "
             + order_string
