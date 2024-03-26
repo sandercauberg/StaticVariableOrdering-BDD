@@ -1,6 +1,6 @@
 import re
 
-from dd import BDD
+from dd.cudd import BDD
 
 
 def replace_var(match):
@@ -95,7 +95,6 @@ def create_bdd(input_format, formula, var_order, dump=False):
     for formula in formulas:
         root = bdd.add_expr(formula)
         roots.append(root)
-    bdd.collect_garbage()
 
     # Print BDD before reordering
     print("BDD Before Reordering:")
@@ -115,10 +114,9 @@ def create_bdd(input_format, formula, var_order, dump=False):
     for formula in formulas:
         root = new_bdd.add_expr(formula)
         new_bdd_roots.append(root)
-    new_bdd.collect_garbage()
 
     # Print BDD after reordering
-    print("BDD Before Reordering:")
+    print("BDD After Reordering:")
     print(new_bdd)
     print(
         "Number of satisfying assignments: "
