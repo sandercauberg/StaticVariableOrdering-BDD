@@ -5,7 +5,8 @@ import time
 
 import parser
 from helpers.buddy_helper import create_bdd
-from helpers.cnf2bc import cnf2bc
+
+# from helpers.cnf2bc import cnf2bc
 
 from heuristics import heuristics
 
@@ -61,7 +62,7 @@ class MyCLI(cmd.Cmd):
             + str(parsed_time - start_time)
             + " seconds."
         )
-        formula = cnf2bc(formula)
+        # formula = cnf2bc(formula)
 
         heuristic_type = None
         if args.heuristic:

@@ -89,6 +89,7 @@ def create_bdd(input_format, formula, var_order, dump=False):
         formulas.append(formula)
 
     bdd = BDD()
+    bdd.configure(reordering=False)
     bdd.declare(*var_names)
     roots = []
 
@@ -108,6 +109,7 @@ def create_bdd(input_format, formula, var_order, dump=False):
     var_names = [f"var_{var}" for var in var_order]
 
     new_bdd = BDD()
+    new_bdd.configure(reordering=False)
     new_bdd.declare(*var_names)
     new_bdd_roots = []
 

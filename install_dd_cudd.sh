@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # Install `dd`, including the modules
 # `dd.cudd` and `dd.cudd_zdd`
@@ -10,25 +10,13 @@
 # ./install_dd_cudd.sh
 #
 
-
-set -v
 set -e
-pip install dd==0.6.0
-    # to first install
-    # dependencies of `dd`
-pip uninstall -y dd
-pip download \
-    --no-deps dd \
-    --no-binary dd
+set -v
+
+pip download dd --no-deps
 tar -xzf dd-*.tar.gz
-pushd dd-*/
-export DD_FETCH=1 DD_CUDD=1
-pip install . \
-    -vvv \
-    --use-pep517 \
-    --no-build-isolation
+cd dd-*/
+python setup.py install --fetch --cudd
 # confirm that `dd.cudd` did get installed
-pushd tests/
 python -c 'import dd.cudd'
-popd
-popd
+cd ..
