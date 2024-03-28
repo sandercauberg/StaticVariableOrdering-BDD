@@ -1,6 +1,7 @@
 import collections
 import typing
 
+from meta.circuit import CustomCircuit
 from meta.formula import And, Or, Variable, Not
 import circuitgraph as cg
 
@@ -142,7 +143,7 @@ def _parse_int(token: str) -> int:
 
 
 def _load_bc(fp: typing.TextIO):
-    circuit = cg.Circuit()
+    circuit = CustomCircuit()
 
     for line in fp:
         line = line.strip()

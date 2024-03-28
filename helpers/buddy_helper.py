@@ -65,11 +65,68 @@ def count_satisfying_assignments(bdd, roots):
     return bdd.count(conjunction)
 
 
+def build_bdd_from_circuit(circuit, var_order):
+    print(" bdd from circuit")
+    bdd = BDD()
+    bdd.configure(reordering=False)
+    bdd.declare(*var_order)
+    gate_nodes = {}  # Dictionary to store BDD nodes corresponding to gates
+    roots = []
+
+    # Traverse the Boolean circuit level by level
+    max_depth = max(circuit.fanout_depth(node) for node in circuit.inputs)
+    for level in range(max_depth + 1):  # Levels are 0-indexed
+        # print("for level: ", level)
+        for node in circuit.graph.nodes:
+            # print("for node ", node, " in ", circuit.graph.nodes,
+            # " with level ", circuit.fanin_depth(node))
+            # Process nodes at the current level
+            if circuit.fanin_depth(node) == level:
+                if node in circuit.inputs:
+                    # Declare a BDD variable for input nodes
+                    bdd.add_var(node)
+                    # print(" added node: ", node)
+                else:
+                    # Construct BDD node based on the gate type
+                    # print('else with node ', node)
+                    node_instance = circuit.graph.nodes.get(node)
+                    # print(circuit.fanin(node))
+                    fanin_nodes = []
+                    for name in circuit.fanin(node):
+                        if name in circuit.inputs:
+                            # If input variable, use BDD variable
+                            fanin_nodes.append(bdd.var(name))
+                        else:
+                            # If gate, use the corresponding BDD node
+                            fanin_nodes.append(gate_nodes[name])
+
+                    # print(fanin_nodes)
+                    if node_instance["type"] == "buf":
+                        # print(circuit.fanin(node))
+                        roots.append(fanin_nodes[0])
+                        continue
+                    elif node not in gate_nodes:
+                        # Apply the gate operation using the retrieved BDD nodes
+                        bdd_node = bdd.apply(node_instance["type"], *fanin_nodes)
+                        gate_nodes[node] = bdd_node
+                    else:
+                        # Reuse the existing BDD node for this gate
+                        bdd_node = gate_nodes[node]
+
+                    # Store the BDD node for this gate
+                    gate_nodes[node] = bdd_node
+
+    # Root nodes of the BDD
+    print(" roots:", roots)
+
+    return bdd, roots
+
+
 def create_bdd(input_format, formula, var_order, dump=False):
-    # Create BDD with BuDDy
+    # Create BDD with CuDD
     formulas = []
     if input_format in ["bc", "v"]:
-        var_names = [f"var_{var}" for var in formula.inputs]
+        var_names = [f"var_{var}" for var in formula.get_ordered_inputs()]
         outputs = [
             get_logic_formula(formula, output_gate)
             for output_gate in formula.output_gates
@@ -88,14 +145,17 @@ def create_bdd(input_format, formula, var_order, dump=False):
             formula = re.sub(r"\b" + re.escape(str(var)) + r"\b", f"var_{var}", formula)
         formulas.append(formula)
 
-    bdd = BDD()
-    bdd.configure(reordering=False)
-    bdd.declare(*var_names)
-    roots = []
+    if input_format in ["bc", "v"]:
+        bdd, roots = build_bdd_from_circuit(formula, var_names)
+    else:
+        bdd = BDD()
+        bdd.configure(reordering=False)
+        bdd.declare(*var_names)
+        roots = []
 
-    for formula in formulas:
-        root = bdd.add_expr(formula)
-        roots.append(root)
+        for formula in formulas:
+            root = bdd.add_expr(formula)
+            roots.append(root)
 
     # Print BDD before reordering
     print("BDD Before Reordering:")
