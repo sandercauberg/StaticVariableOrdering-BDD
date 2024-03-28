@@ -66,11 +66,10 @@ def count_satisfying_assignments(bdd, roots):
 
 
 def build_bdd_from_circuit(circuit, var_order):
-    print(" bdd from circuit", var_order)
     bdd = BDD()
     bdd.configure(reordering=False)
     bdd.declare(*var_order)
-    gate_nodes = {}  # Dictionary to store BDD nodes corresponding to gates
+    gate_nodes = {}
     roots = []
 
     # Process input nodes first
@@ -79,49 +78,51 @@ def build_bdd_from_circuit(circuit, var_order):
 
     # Traverse the Boolean circuit level by level
     max_depth = max(circuit.fanout_depth(node) for node in circuit.inputs)
-    for level in range(max_depth + 1):  # Levels are 0-indexed
-        # print("for level: ", level)
+    for level in range(max_depth + 1):
+        print("Processing level:", level)
         for node in circuit.graph.nodes:
-            # print("for node ", node, " in ", circuit.graph.nodes,
-            # " with level ", circuit.fanin_depth(node))
-            # Process nodes at the current level
             if circuit.fanin_depth(node) == level:
+                print("Processing node:", node)
                 if node in circuit.inputs:
-                    # Declare a BDD variable for input nodes
+                    print("Node is an input.")
                     continue
-                    # print(" added node: ", node)
                 else:
-                    # Construct BDD node based on the gate type
-                    # print('else with node ', node)
+                    print("Node is a gate.")
                     node_instance = circuit.graph.nodes.get(node)
-                    # print(circuit.fanin(node))
+                    print("Node instance:", node_instance)
                     fanin_nodes = []
                     for name in circuit.fanin(node):
                         if name in circuit.inputs:
-                            # If input variable, use BDD variable
+                            print("Fanin node is an input:", name)
                             fanin_nodes.append(bdd.var(name))
                         else:
-                            # If gate, use the corresponding BDD node
-                            fanin_nodes.append(gate_nodes[name])
-
-                    # print(fanin_nodes)
+                            print("Fanin node is a gate node:", name)
+                            if name not in gate_nodes:
+                                print("Creating new BDD node for gate:", name)
+                                bdd_node = bdd.add_var(name)
+                                gate_nodes[name] = bdd_node
+                            else:
+                                print("Reusing existing BDD node for gate:", name)
+                                bdd_node = gate_nodes[name]
+                            fanin_nodes.append(bdd_node)
+                    print("Fanin nodes:", fanin_nodes)
                     if node_instance["type"] == "buf":
-                        # print(circuit.fanin(node))
+                        print("buf node", node, node_instance)
                         roots.append(fanin_nodes[0])
                         continue
                     elif node not in gate_nodes:
-                        # Apply the gate operation using the retrieved BDD nodes
+                        print("Creating new BDD node for gate:", node)
+                        if node_instance["output"] is True:
+                            print("OUTPUT")
+                            # TODO add the output function to the roots list
                         bdd_node = bdd.apply(node_instance["type"], *fanin_nodes)
                         gate_nodes[node] = bdd_node
                     else:
-                        # Reuse the existing BDD node for this gate
+                        print("Reusing existing BDD node for gate:", node)
                         bdd_node = gate_nodes[node]
 
-                    # Store the BDD node for this gate
                     gate_nodes[node] = bdd_node
-
-    # Root nodes of the BDD
-    print(" roots:", roots)
+                    print("BDD node for gate:", node, "is", bdd_node)
 
     return bdd, roots
 
@@ -151,6 +152,7 @@ def create_bdd(input_format, formula, var_order, dump=False):
         formulas.append(formula)
 
     if input_format in ["bc", "v"]:
+        print("original", original_order, "var order", var_order)
         bdd, roots = build_bdd_from_circuit(formula, original_order)
     else:
         bdd = BDD()
@@ -171,8 +173,8 @@ def create_bdd(input_format, formula, var_order, dump=False):
     )
 
     # Set the variable order
-    var_names = [f"var_{var}" for var in var_order]
-    print("order:", var_names)
+    # var_names = [f"var_{var}" for var in var_order]
+    print("order:", var_order)
 
     if input_format in ["bc", "v"]:
         new_bdd, new_bdd_roots = build_bdd_from_circuit(formula, var_order)
