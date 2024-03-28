@@ -66,12 +66,16 @@ def count_satisfying_assignments(bdd, roots):
 
 
 def build_bdd_from_circuit(circuit, var_order):
-    print(" bdd from circuit")
+    print(" bdd from circuit", var_order)
     bdd = BDD()
     bdd.configure(reordering=False)
     bdd.declare(*var_order)
     gate_nodes = {}  # Dictionary to store BDD nodes corresponding to gates
     roots = []
+
+    # Process input nodes first
+    for node in var_order:
+        bdd.add_var(node)
 
     # Traverse the Boolean circuit level by level
     max_depth = max(circuit.fanout_depth(node) for node in circuit.inputs)
@@ -84,7 +88,7 @@ def build_bdd_from_circuit(circuit, var_order):
             if circuit.fanin_depth(node) == level:
                 if node in circuit.inputs:
                     # Declare a BDD variable for input nodes
-                    bdd.add_var(node)
+                    continue
                     # print(" added node: ", node)
                 else:
                     # Construct BDD node based on the gate type
@@ -126,7 +130,8 @@ def create_bdd(input_format, formula, var_order, dump=False):
     # Create BDD with CuDD
     formulas = []
     if input_format in ["bc", "v"]:
-        var_names = [f"var_{var}" for var in formula.get_ordered_inputs()]
+        original_order = formula.get_ordered_inputs()
+        var_names = [f"var_{var}" for var in original_order]
         outputs = [
             get_logic_formula(formula, output_gate)
             for output_gate in formula.output_gates
@@ -146,7 +151,7 @@ def create_bdd(input_format, formula, var_order, dump=False):
         formulas.append(formula)
 
     if input_format in ["bc", "v"]:
-        bdd, roots = build_bdd_from_circuit(formula, var_names)
+        bdd, roots = build_bdd_from_circuit(formula, original_order)
     else:
         bdd = BDD()
         bdd.configure(reordering=False)
@@ -167,15 +172,19 @@ def create_bdd(input_format, formula, var_order, dump=False):
 
     # Set the variable order
     var_names = [f"var_{var}" for var in var_order]
+    print("order:", var_names)
 
-    new_bdd = BDD()
-    new_bdd.configure(reordering=False)
-    new_bdd.declare(*var_names)
-    new_bdd_roots = []
+    if input_format in ["bc", "v"]:
+        new_bdd, new_bdd_roots = build_bdd_from_circuit(formula, var_order)
+    else:
+        new_bdd = BDD()
+        new_bdd.configure(reordering=False)
+        new_bdd.declare(*var_names)
+        new_bdd_roots = []
 
-    for formula in formulas:
-        root = new_bdd.add_expr(formula)
-        new_bdd_roots.append(root)
+        for formula in formulas:
+            root = new_bdd.add_expr(formula)
+            new_bdd_roots.append(root)
 
     # Print BDD after reordering
     print("BDD After Reordering:")
