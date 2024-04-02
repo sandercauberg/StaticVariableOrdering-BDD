@@ -110,15 +110,15 @@ def to_bc(formula, circuit):
             negated_variable = formula.child
             return f"not_var_{negated_variable}"
         elif isinstance(formula, Or):
-            if len(formula.ordered_children) < 2:
-                return build_circuit(next(iter(formula.ordered_children)))
+            if len(formula.children) < 2:
+                return build_circuit(next(iter(formula.children)))
             gate_name = f"or_{id(formula)}"
             fanins = [build_circuit(child) for child in formula.ordered_children]
             circuit.add(gate_name, "or", fanins)
             return gate_name
         elif isinstance(formula, And):
-            if len(formula.ordered_children) < 2:
-                return build_circuit(next(iter(formula.ordered_children)))
+            if len(formula.children) < 2:
+                return build_circuit(next(iter(formula.children)))
             gate_name = f"and_{id(formula)}"
             fanins = [build_circuit(child) for child in formula.ordered_children]
             circuit.add(gate_name, "and", fanins)

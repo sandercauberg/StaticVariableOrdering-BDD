@@ -116,21 +116,26 @@ def _load_cnf(fp: typing.TextIO):
 
 
 def _parse_cnf(tokens: typing.Iterable[str]):
-    clauses = set()  # type: typing.Set[typing.Tuple[Formula, ...]]
-    clause = set()  # type: typing.Set[Formula]
+    clauses = (
+        collections.OrderedDict()
+    )  # type: typing.OrderedDict[int, typing.Tuple[Formula, ...]]
+    clause = []  # type: typing.List[Formula]
+
     for token in tokens:
         if token == "0":
-            clauses.add(tuple(clause))
-            clause = set()
+            clauses[len(clauses)] = tuple(clause)
+            clause = []
         elif token.startswith("-"):
-            clause.add(Not(Variable(_parse_int(token[1:]))))
+            clause.append(Not(Variable(_parse_int(token[1:]))))
         else:
-            clause.add(Variable(_parse_int(token)))
+            clause.append(Variable(_parse_int(token)))
     if clause:
         # A file may or may not end with a 0
         # Adding an empty clause is not desirable
-        clauses.add(tuple(clause))
-    sentence = And(*[Or(*clause_tuple) for clause_tuple in clauses])
+        clauses[len(clauses)] = clause
+
+    ordered_clauses = [tuple(clause) for clause in clauses.values()]
+    sentence = And(*[Or(*clause_tuple) for clause_tuple in ordered_clauses])
     return sentence
 
 
