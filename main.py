@@ -4,7 +4,7 @@ import argparse
 import time
 
 import parser
-from helpers.buddy_helper import create_bdd
+from helpers.cudd_helper import create_bdd
 
 from helpers.cnf2bc import cnf2bc
 
@@ -74,6 +74,7 @@ class MyCLI(cmd.Cmd):
 
         # Transformation options
         if args.transform:
+            # TODO if more transformations are available, take arguments directly
             if input_format == "cnf" and args.transform == "bc":
                 formula = cnf2bc(formula)
                 print(f"Transformed from {input_format} to {args.transform}")

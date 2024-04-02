@@ -1,6 +1,7 @@
 import re
 
 from dd.cudd import BDD
+from meta.circuit import CustomCircuit
 
 
 def replace_var(match):
@@ -77,15 +78,15 @@ def build_bdd_from_circuit(circuit, var_order):
         bdd.add_var(node)
 
     # Traverse the Boolean circuit level by level
-    max_depth = max(circuit.fanout_depth(node) for node in circuit.inputs)
+    max_depth = max(circuit.fanout_depth(node) for node in circuit.inputs())
     for level in range(max_depth + 1):
         for node in circuit.graph.nodes:
-            if circuit.fanin_depth(node) == level and node not in circuit.inputs:
+            if circuit.fanin_depth(node) == level and node not in circuit.inputs():
                 node_instance = circuit.graph.nodes.get(node)
                 fanin_nodes = []
 
                 for name in circuit.fanin(node):
-                    if name in circuit.inputs:
+                    if name in circuit.inputs():
                         fanin_nodes.append(bdd.var(name))
                     else:
                         if name not in gate_nodes:
@@ -139,7 +140,7 @@ def create_bdd(input_format, formula, var_order, dump=False):
     # Create BDD with CuDD
     formulas = []
     if input_format in ["bc", "v"]:
-        original_order = formula.get_ordered_inputs()
+        original_order = CustomCircuit.get_ordered_inputs(formula)
         var_names = [f"var_{var}" for var in original_order]
         outputs = [
             get_logic_formula(formula, output_gate)
@@ -174,6 +175,7 @@ def create_bdd(input_format, formula, var_order, dump=False):
     # Print BDD before reordering
     print("BDD Before Reordering:")
     print(bdd)
+    print("Amount of nodes: ", len(bdd))
     print(
         "Number of satisfying assignments: "
         + str(count_satisfying_assignments(bdd, roots))
@@ -194,6 +196,7 @@ def create_bdd(input_format, formula, var_order, dump=False):
     # Print BDD after reordering
     print("BDD After Reordering:")
     print(new_bdd)
+    print("Amount of nodes: ", len(new_bdd))
     print(
         "Number of satisfying assignments: "
         + str(count_satisfying_assignments(new_bdd, new_bdd_roots))

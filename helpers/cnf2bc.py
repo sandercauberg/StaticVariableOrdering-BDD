@@ -89,14 +89,11 @@ def factor_out(formula, literals):
 
 
 def cnf2bc(cnf_formula):
-    circuit = CustomCircuit()
     literals = cnf_formula.extract_variables()
-    [circuit.add(f"var_{var}", node_type="input") for var in literals]
-    literals = extract_literals_on_occurrences(cnf_formula, literals)
+    sorted_literals = extract_literals_on_occurrences(cnf_formula, literals)
 
-    formula = factor_out(cnf_formula, literals)
+    formula = factor_out(cnf_formula, sorted_literals)
     circuit = CustomCircuit()
-    literals = formula.extract_variables()
     [circuit.add(f"var_{var}", node_type="input") for var in literals]
 
     for var in formula.extract_negated_variables():
