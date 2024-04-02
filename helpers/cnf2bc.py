@@ -25,7 +25,7 @@ def extract_literals_on_dependencies(formula, literals):
         dependencies = 0
         visited_variables.add(variable)
 
-        for child in formula.children:
+        for child in formula.ordered_children:
             child_variables = child.extract_variables()
             if variable in child_variables:
                 dependencies += len(child_variables - visited_variables)
@@ -45,14 +45,14 @@ def factor_out(formula, literals):
     unprocessed_clauses = []
     literal = literals.pop(0)
 
-    for clause in formula.children:
+    for clause in formula.ordered_children:
         if (
             literal in clause.children
             and len(clause.children) > 1
             and len(literals) >= 1
         ):
             positive_factors.append(
-                Or(*(term for term in clause.children if term != literal))
+                Or(*(term for term in clause.ordered_children if term != literal))
             )
         elif (
             Not(literal) in clause.children
@@ -60,7 +60,7 @@ def factor_out(formula, literals):
             and len(literals) >= 1
         ):
             negative_factors.append(
-                Or(*(term for term in clause.children if term != Not(literal)))
+                Or(*(term for term in clause.ordered_children if term != Not(literal)))
             )
         else:
             unprocessed_clauses.append(clause)
@@ -110,17 +110,17 @@ def to_bc(formula, circuit):
             negated_variable = formula.child
             return f"not_var_{negated_variable}"
         elif isinstance(formula, Or):
-            if len(formula.children) < 2:
-                return build_circuit(next(iter(formula.children)))
+            if len(formula.ordered_children) < 2:
+                return build_circuit(next(iter(formula.ordered_children)))
             gate_name = f"or_{id(formula)}"
-            fanins = [build_circuit(child) for child in formula.children]
+            fanins = [build_circuit(child) for child in formula.ordered_children]
             circuit.add(gate_name, "or", fanins)
             return gate_name
         elif isinstance(formula, And):
-            if len(formula.children) < 2:
-                return build_circuit(next(iter(formula.children)))
+            if len(formula.ordered_children) < 2:
+                return build_circuit(next(iter(formula.ordered_children)))
             gate_name = f"and_{id(formula)}"
-            fanins = [build_circuit(child) for child in formula.children]
+            fanins = [build_circuit(child) for child in formula.ordered_children]
             circuit.add(gate_name, "and", fanins)
             return gate_name
 

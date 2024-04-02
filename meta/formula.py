@@ -46,6 +46,10 @@ class BinOp(Formula):
 
     __repr__ = __str__
 
+    @property
+    def ordered_children(self):
+        return list(self.children)
+
     def eq(self, other):
         return self.children == other.children
 

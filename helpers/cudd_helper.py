@@ -74,18 +74,17 @@ def build_bdd_from_circuit(circuit, var_order):
     roots = []
 
     # Process input nodes first
-    for node in var_order:
-        bdd.add_var(node)
+    [bdd.add_var(node) for node in var_order]
 
     # Traverse the Boolean circuit level by level
     max_depth = max(circuit.fanout_depth(node) for node in circuit.inputs())
     for level in range(max_depth + 1):
-        for node in circuit.graph.nodes:
+        for node in CustomCircuit.get_gates(circuit):
             if circuit.fanin_depth(node) == level and node not in circuit.inputs():
                 node_instance = circuit.graph.nodes.get(node)
                 fanin_nodes = []
 
-                for name in circuit.fanin(node):
+                for name in CustomCircuit.get_ordered_fanin(circuit, node):
                     if name in circuit.inputs():
                         fanin_nodes.append(bdd.var(name))
                     else:
@@ -142,11 +141,7 @@ def create_bdd(input_format, formula, var_order, dump=False):
     if input_format in ["bc", "v"]:
         original_order = CustomCircuit.get_ordered_inputs(formula)
         var_names = [f"var_{var}" for var in original_order]
-        outputs = [
-            get_logic_formula(formula, output_gate)
-            for output_gate in formula.output_gates
-        ]
-        formulas = [transform_graph(output) for output in outputs]
+        bdd, roots = build_bdd_from_circuit(formula, original_order)
     else:
         variables = formula.extract_variables()
         var_names = [f"var_{var}" for var in variables]
@@ -160,9 +155,6 @@ def create_bdd(input_format, formula, var_order, dump=False):
             formula = re.sub(r"\b" + re.escape(str(var)) + r"\b", f"var_{var}", formula)
         formulas.append(formula)
 
-    if input_format in ["bc", "v"]:
-        bdd, roots = build_bdd_from_circuit(formula, original_order)
-    else:
         bdd = BDD()
         bdd.configure(reordering=False)
         bdd.declare(*var_names)
