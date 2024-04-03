@@ -65,16 +65,30 @@ def factor_out(formula, literals):
         else:
             unprocessed_clauses.append(clause)
 
-    positive_result = (
-        Or(literal, factor_out(And(*positive_factors), literals))
-        if positive_factors
-        else None
-    )
-    negative_result = (
-        Or(Not(literal), factor_out(And(*negative_factors), literals))
-        if negative_factors
-        else None
-    )
+    if not positive_factors:
+        positive_result = None
+    elif len(positive_factors) < 2:
+        positive_result = Or(literal, positive_factors[0])
+    else:
+        positive_result = Or(
+            literal,
+            factor_out(
+                And(*positive_factors),
+                extract_literals_on_occurrences(And(*positive_factors), literals),
+            ),
+        )
+    if not negative_factors:
+        negative_result = None
+    elif len(negative_factors) < 2:
+        negative_result = Or(Not(literal), negative_factors[0])
+    else:
+        negative_result = Or(
+            Not(literal),
+            factor_out(
+                And(*negative_factors),
+                extract_literals_on_occurrences(And(*negative_factors), literals),
+            ),
+        )
 
     if negative_result and positive_result:
         final_formula = And(positive_result, negative_result, *unprocessed_clauses)
