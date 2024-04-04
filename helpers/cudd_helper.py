@@ -1,5 +1,6 @@
 import re
 
+import circuitgraph.sat
 from dd.cudd import BDD
 from meta.circuit import CustomCircuit
 
@@ -119,10 +120,9 @@ def build_bdd_from_circuit(circuit, var_order):
                         if bdd_node is None:
                             bdd_node = bdd.apply(op, Function_u, Function_v)
                         else:
+                            bdd_node = bdd.apply(op, bdd_node, Function_u)
                             if Function_v:
-                                bdd_node = bdd.apply(op, Function_u, Function_v)
-                            else:
-                                bdd_node = bdd.apply(op, bdd_node, Function_u)
+                                bdd_node = bdd.apply(op, bdd_node, Function_v)
 
                     if node_instance["output"] is True:
                         roots.append(bdd_node)
@@ -196,6 +196,11 @@ def create_bdd(input_format, formula, var_order, dump=False):
     assert count_satisfying_assignments(bdd, roots) == count_satisfying_assignments(
         new_bdd, new_bdd_roots
     )
+    if input_format in ["bc", "v"]:
+        assert count_satisfying_assignments(bdd, roots) == circuitgraph.sat.model_count(
+            formula, assumptions={output: True for output in formula.outputs()}
+        )
+
     if dump:
         bdd.dump("bdd.png", roots=roots, filetype="png")
         new_bdd.dump("bdd_output.png", roots=new_bdd_roots, filetype="png")
