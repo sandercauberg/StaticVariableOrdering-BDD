@@ -56,11 +56,12 @@ class MyCLI(cmd.Cmd):
             print(f"Warning: {e}. Please try again.")
             return
         parsed_time = time.perf_counter()
+        parsing_time = parsed_time - start_time
         print(
             "the formula: "
             + str(formula)
             + " has been parsed in "
-            + str(parsed_time - start_time)
+            + str(parsing_time)
             + " seconds."
         )
 
@@ -98,15 +99,22 @@ class MyCLI(cmd.Cmd):
         order_string, var_order = heuristic_module.calculate(formula)
 
         end_time = time.perf_counter()
+        ordering_time = end_time - parsed_time
         print(
             "The order: "
             + order_string
             + " has been decided in "
-            + str(end_time - parsed_time)
+            + str(ordering_time)
             + " seconds."
         )
 
-        create_bdd(input_format, formula, var_order, args.dump)
+        bdd_info = create_bdd(input_format, formula, var_order, args.dump)
+
+        return {
+            "File": args.filename,
+            "Command": f"choose {args.filename}",
+            "Result": f"Order: {order_string}, Parsing Time: {parsing_time}, Ordering Time: {ordering_time}, BDD Info: {bdd_info}",
+        }
 
     def do_quit(self, line):
         """Exit the CLI."""
