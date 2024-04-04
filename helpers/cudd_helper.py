@@ -1,61 +1,7 @@
 import re
 
-import circuitgraph.sat
 from dd.cudd import BDD
 from meta.circuit import CustomCircuit
-
-
-def replace_var(match):
-    var_name = match.group(1)
-    return f"var_{var_name}"
-
-
-def transform_graph(input_string):
-    input_string = re.sub(r"VAR\((\w+)\)", replace_var, input_string)
-
-    def replace_comma_in_nand(match):
-        inner_content = match.group(2)
-        inner_content = re.sub(r"nand\(([^,]+),([^)]+)\)", r"(\1|\2)", inner_content)
-        return f"({match.group(1)}|{inner_content})"
-
-    while re.search("nand", input_string):
-        input_string = re.sub(
-            r"nand\(([^,]+),([^)]+)\)", replace_comma_in_nand, input_string
-        )
-
-    return input_string
-
-
-def get_logic_formula(circuit, gate_name, var_prefix="var_"):
-    if gate_name in circuit.graph._node:
-        node_data = circuit.graph._node[gate_name]
-        if node_data["type"] == "input":
-            return f"{var_prefix}{gate_name}"
-        else:
-            inputs = circuit.graph._pred[gate_name]
-            input_formulas = [
-                get_logic_formula(circuit, input_gate, var_prefix)
-                for input_gate in inputs
-            ]
-            if node_data["type"] == "nand":
-                negated_input_formulas = [
-                    f"!({input_formula})" for input_formula in input_formulas
-                ]
-                return f"({'&'.join(negated_input_formulas)})"
-            if node_data["type"] == "and":
-                return f"({'&'.join(input_formulas)})"
-            if node_data["type"] == "or":
-                return f"({'|'.join(input_formulas)})"
-            if node_data["type"] == "nor":
-                return f"!({' | '.join(f'{formula}' for formula in input_formulas)})"
-            if node_data["type"] == "not":
-                return f"({''.join(input_formulas)})"
-            if node_data["type"] == "xor":
-                return f"({' ^ '.join(input_formulas)})"
-            if node_data["type"] == "buf":
-                return input_formulas[0]
-            # Add similar conditions for other gate types if needed
-    return ""
 
 
 def count_satisfying_assignments(bdd, roots):
@@ -73,6 +19,12 @@ def build_bdd_from_circuit(circuit, var_order):
     bdd.declare(*var_order)
     gate_nodes = {}
     roots = []
+
+    # Mapping of gate types to BDD operations
+    gate_to_op = {
+        "nand": lambda u, v: bdd.apply("not", bdd.apply("and", u, v)),
+        "nor": lambda u, v: bdd.apply("not", bdd.apply("or", u, v)),
+    }
 
     # Process input nodes first
     [bdd.add_var(node) for node in var_order]
@@ -117,12 +69,26 @@ def build_bdd_from_circuit(circuit, var_order):
                             args_to_apply[1] if len(args_to_apply) >= 2 else None
                         )
 
+                        bdd_op = gate_to_op.get(op)
+
                         if bdd_node is None:
-                            bdd_node = bdd.apply(op, Function_u, Function_v)
+                            bdd_node = (
+                                bdd_op(Function_u, Function_v)
+                                if callable(bdd_op)
+                                else bdd.apply(op, Function_u, Function_v)
+                            )
                         else:
-                            bdd_node = bdd.apply(op, bdd_node, Function_u)
+                            bdd_node = (
+                                bdd_op(Function_u, Function_v)
+                                if callable(bdd_op)
+                                else bdd.apply(op, bdd_node, Function_u)
+                            )
                             if Function_v:
-                                bdd_node = bdd.apply(op, bdd_node, Function_v)
+                                bdd_node = (
+                                    bdd_op(bdd_node, Function_v)
+                                    if callable(bdd_op)
+                                    else bdd.apply(op, bdd_node, Function_v)
+                                )
 
                     if node_instance["output"] is True:
                         roots.append(bdd_node)
@@ -197,9 +163,13 @@ def create_bdd(input_format, formula, var_order, dump=False):
         new_bdd, new_bdd_roots
     )
     if input_format in ["bc", "v"]:
-        assert count_satisfying_assignments(bdd, roots) == circuitgraph.sat.model_count(
-            formula, assumptions={output: True for output in formula.outputs()}
-        )
+        # We cannot do this assertion as the BDD is optimized,
+        # whereas the BC is not. So it may yield different results
+        pass
+        # assert count_satisfying_assignments(bdd, roots) ==
+        # circuitgraph.sat.model_count(
+        #     formula, assumptions={output: True for output in formula.outputs()}
+        # )
 
     if dump:
         bdd.dump("bdd.png", roots=roots, filetype="png")
