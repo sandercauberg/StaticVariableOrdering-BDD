@@ -158,7 +158,7 @@ def _load_bc(fp: typing.TextIO):
         parts = line.strip().split()
         if parts[0] == "BC1.1":
             continue  # Skip the header line
-        if parts[0] == "VAR":
+        elif parts[0] == "VAR":
             circuit.add(parts[1].rstrip(";"), "input")
         elif parts[1] == "GATE":
             gate_name = parts[2]
@@ -175,9 +175,23 @@ def _load_bc(fp: typing.TextIO):
             }
             operation = operation_mapping.get(parts[0], parts[0])
             input_names = [name.rstrip(";") for name in parts[3:]]
-            circuit.add(gate_name, operation, fanin=input_names)
+            try:
+                circuit.add(gate_name, operation, fanin=input_names)
+            except ValueError as e:
+                raise ParserWarning(e)
         elif parts[0] == "ASSIGN":
             output_gate = parts[1]
             circuit.add(output_gate, "buf", output=True, fanin=[parts[2].rstrip(";")])
+
+    if not circuit.inputs():
+        raise ParserWarning(
+            "No inputs found in Boolean Circuit. Please assign inputs with 'VAR"
+            " {name}'."
+        )
+    if not circuit.outputs():
+        raise ParserWarning(
+            "No output found in Boolean Circuit. Please assign (an) output(s) with"
+            " 'ASSIGN {name} {fanins}'."
+        )
 
     return circuit

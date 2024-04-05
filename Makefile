@@ -3,7 +3,7 @@ install:
 	./install_dd_cudd.sh
 
 format:
-	black ./
+	black ./ --experimental-string-processing
 
 lint:
 	flake8 --exclude=./venv/,./dd-*/ --max-line-length 88

@@ -12,7 +12,7 @@ class Formula:
         return self.__class__ == other.__class__ and self.eq(other)
 
     def eval(self, v):
-        raise NotImplementedError("Plain formula can not be valuated")
+        raise NotImplementedError("Plain formula can not be evaluated")
 
     def extract_variables(self):
         variables = set()

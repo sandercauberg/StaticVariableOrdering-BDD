@@ -1,9 +1,11 @@
 import os
 import tempfile
 
+import circuitgraph
 import pytest
 
 import parser
+from meta.circuit import CustomCircuit
 
 
 @pytest.mark.parametrize(
@@ -114,6 +116,157 @@ def test_input_file_basic__cnf():
     ],
 )
 def test_input_file__error(input_string, error_string):
+    with pytest.raises(parser.ParserWarning) as e:
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as temp_file:
+            temp_file.write(input_string)
+            temp_file_path = temp_file.name
+
+        try:
+            parser.load(temp_file_path)
+        finally:
+            # Clean up the temporary file
+            if temp_file_path:
+                os.remove(temp_file_path)
+
+    assert str(e.value) == error_string
+
+
+@pytest.mark.parametrize(
+    "input_string,expected_output",
+    [
+        (
+            (
+                "BC1.1\nVAR A;\nVAR B;\nVAR C;\nVAR D;\nAND GATE AND1 A B;\nOR GATE OR1"
+                " AND1 C;\nNOT GATE NOT1 D;\nASSIGN OUTPUT OR1;"
+            ),
+            10,
+        ),
+        (
+            (
+                "BC1.1\nVAR A;\nVAR B;\nVAR C;\nVAR D;\nAND GATE AND1 A B;\nOR GATE OR1"
+                " AND1 C;\nNOT GATE NOT1 D;\nAND GATE AND2 OR1 NOT1;\nASSIGN OUTPUT"
+                " AND2;"
+            ),
+            5,
+        ),
+        (
+            (
+                "BC1.1\nVAR A;\nVAR B;\nVAR C;\nVAR D;\nVAR E;\nVAR F;\n\nOR GATE OR1 A"
+                " B;\nAND GATE AND1 C D;\nOR GATE OR2 E F;\nOR GATE OR3 OR1 AND1;\nOR"
+                " GATE OR4 AND1 OR2;\nOR GATE OR5 OR4 F;\nAND GATE AND2 AND1 OR5;\nNOR"
+                " GATE NOR1 OR3 AND2;\nASSIGN OUTPUT NOR1;\n"
+            ),
+            12,
+        ),
+        (
+            (
+                "BC1.1\nVAR A;\nVAR B;\nAND GATE AND1 A B;\nNAND GATE NAND1 A B;\nAND"
+                " GATE AND2 AND1 NAND1;\nASSIGN OUTPUT AND2;\n"
+            ),
+            0,
+        ),
+    ],
+)
+def test_input_file_basic__bc(input_string, expected_output):
+    """Test a basic correct bc input, while also testing leaving out some
+    unambiguous spacing."""
+    with tempfile.NamedTemporaryFile(mode="w+", delete=False) as temp_file:
+        temp_file.write(input_string)
+        temp_file_path = temp_file.name
+
+    try:
+        input_format, circuit = parser.load(temp_file_path)
+
+        assert input_format == "bc"
+        assert isinstance(circuit, CustomCircuit)
+        assert (
+            circuitgraph.sat.model_count(
+                circuit, assumptions={output: True for output in circuit.outputs()}
+            )
+            == expected_output
+        )
+    finally:
+        # Clean up the temporary file
+        if temp_file_path:
+            os.remove(temp_file_path)
+
+
+@pytest.mark.parametrize(
+    "input_string,expected_output",
+    [
+        (
+            (
+                "module c17 (N1,N2,N3,N6,N7,N22,N23);\n\ninput"
+                " N1,N2,N3,N6,N7;\n\noutput N22,N23;\n\nwire N10,N11,N16,N19;\n\nnand"
+                " NAND2_1 (N10, N1, N3);\nnand NAND2_2 (N11, N3, N6);\nnand NAND2_3"
+                " (N16, N2, N11);\nnand NAND2_4 (N19, N11, N7);\nnand NAND2_5 (N22,"
+                " N10, N16);\nnand NAND2_6 (N23, N16, N19);\n\nendmodule"
+            ),
+            13,
+        ),
+    ],
+)
+def test_input_file_basic_verilog(input_string, expected_output):
+    """Test input and reading of verilog files. This example has multiple outputs."""
+    with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".v") as temp_file:
+        temp_file.write(input_string)
+        temp_file_path = temp_file.name
+
+    try:
+        input_format, circuit = parser.load(temp_file_path)
+
+        assert input_format == "v"
+        assert isinstance(circuit, circuitgraph.Circuit)
+        assert len(circuit.outputs()) == 2
+        assert (
+            circuitgraph.sat.model_count(
+                circuit, assumptions={output: True for output in circuit.outputs()}
+            )
+            == expected_output
+        )
+    finally:
+        # Clean up the temporary file
+        if temp_file_path:
+            os.remove(temp_file_path)
+
+
+@pytest.mark.parametrize(
+    "input_string,error_string",
+    [
+        (
+            (
+                "BC1.1\nAND GATE AND1 A B;\nOR GATE OR1 AND1 C;\nNOT GATE NOT1"
+                " D;\nASSIGN OUTPUT OR1;"
+            ),
+            "node 'A' does not exist.",
+        ),
+        (
+            (
+                "BC1.1\nAND GATE AND1 B A;\nOR GATE OR1 AND1 C;\nNOT GATE NOT1"
+                " D;\nASSIGN OUTPUT OR1;"
+            ),
+            "node 'B' does not exist.",
+        ),
+        (
+            (
+                "BC1.1\nVAR A;\nVAR B;\nVAR C;\nVAR D;\nAND GATE AND1 A B;\nOR GATE OR1"
+                " AND1 C;\nNOT GATE NOT1 D;"
+            ),
+            (
+                "No output found in Boolean Circuit. Please assign (an) output(s) with"
+                " 'ASSIGN {name} {fanins}'."
+            ),
+        ),
+        (
+            "BC1.1",
+            (
+                "No inputs found in Boolean Circuit. Please assign inputs with 'VAR"
+                " {name}'."
+            ),
+        ),
+    ],
+)
+def test_input_file__bc__error(input_string, error_string):
     with pytest.raises(parser.ParserWarning) as e:
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as temp_file:
             temp_file.write(input_string)
