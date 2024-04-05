@@ -28,7 +28,7 @@ def is_visited(circuit, node):
     return circuit.graph.nodes.get(node)["visited"]
 
 
-def calculate(circuit, node=None, order=None):
+def calculate_order(circuit, node=None, order=None):
     # Initially, the output node should be the place to start from
     if order is None:
         order = []
@@ -56,7 +56,18 @@ def calculate(circuit, node=None, order=None):
 
         for w in sorted_predecessors:
             if not is_visited(circuit, w):
-                calculate(circuit, w, order)
+                calculate_order(circuit, w, order)
+
+        return order
+
+
+def calculate(circuit):
+    order = calculate_order(circuit)
+
+    inputs = CustomCircuit.get_ordered_inputs(circuit)
+    for input_node in inputs:
+        if input_node not in order:
+            order.append(input_node)
 
     circuit.remove("imaginary_output")
 
