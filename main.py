@@ -113,7 +113,12 @@ class MyCLI(cmd.Cmd):
         return {
             "File": args.filename,
             "Command": f"choose {args.filename}",
-            "Result": f"Order: {order_string}, Parsing Time: {parsing_time}, Ordering Time: {ordering_time}, BDD Info: {bdd_info}",
+            "Result": {
+                "Order": order_string,
+                "Parsing Time": parsing_time,
+                "Ordering Time": ordering_time,
+                "BDD Info": bdd_info,
+            },
         }
 
     def do_quit(self, line):
