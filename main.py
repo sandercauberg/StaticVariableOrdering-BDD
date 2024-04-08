@@ -4,6 +4,7 @@ import argparse
 import time
 
 import parser
+from helpers.bc2cnf import bc2cnf
 from helpers.cnf2hypergraph import cnf2hypergraph
 from helpers.cudd_helper import create_bdd
 
@@ -81,10 +82,14 @@ class MyCLI(cmd.Cmd):
                 formula = cnf2bc(formula)
                 print(f"Transformed from {input_format} to {args.transform}")
                 input_format = "bc"
-            if input_format == "cnf" and args.transform == "hypergraph":
+            elif input_format == "cnf" and args.transform == "hypergraph":
                 hypergraph = cnf2hypergraph(formula)
                 print(hypergraph)
                 print(hypergraph.__dict__)
+            elif input_format == "bc" and args.transform == "cnf":
+                formula = bc2cnf(formula)
+                print(f"Transformed from {input_format} to {args.transform}")
+                input_format = "cnf"
 
         heuristic_options = heuristics.heuristics[input_format]
 
