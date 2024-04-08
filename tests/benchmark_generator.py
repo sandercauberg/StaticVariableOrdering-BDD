@@ -34,7 +34,12 @@ schema = [
     ("Order", str),
     ("Parsing Time", str),
     ("Ordering Time", str),
-    ("BDD Info", str),
+    ("Original BDD creation time", str),
+    ("Original BDD size", str),
+    ("Original BDD # of satisfying assignments", str),
+    ("Reordered BDD creation time", str),
+    ("Reordered BDD size", str),
+    ("Reordered BDD # of satisfying assignments", str),
 ]
 df = pl.DataFrame([], schema=schema)
 
@@ -64,7 +69,24 @@ for file_name in sorted(os.listdir(folder_path)):
                                     result_dict["Result"]["Order"],
                                     result_dict["Result"]["Parsing Time"],
                                     result_dict["Result"]["Ordering Time"],
-                                    str(result_dict["Result"]["BDD Info"]),
+                                    result_dict["Result"]["BDD Info"][
+                                        "Original BDD creation time"
+                                    ],
+                                    result_dict["Result"]["BDD Info"][
+                                        "Original BDD size"
+                                    ],
+                                    result_dict["Result"]["BDD Info"][
+                                        "Original BDD # of satisfying assignments"
+                                    ],
+                                    result_dict["Result"]["BDD Info"][
+                                        "Reordered BDD creation time"
+                                    ],
+                                    result_dict["Result"]["BDD Info"][
+                                        "Reordered BDD size"
+                                    ],
+                                    result_dict["Result"]["BDD Info"][
+                                        "Reordered BDD # of satisfying assignments"
+                                    ],
                                 )
                             ],
                             schema=schema,
@@ -77,7 +99,22 @@ for file_name in sorted(os.listdir(folder_path)):
                     [
                         df,
                         pl.DataFrame(
-                            [(file_name, command, f"Error: {e}", "", "", "", "")],
+                            [
+                                (
+                                    file_name,
+                                    command,
+                                    f"Error: {e}",
+                                    "",
+                                    "",
+                                    "",
+                                    "",
+                                    "",
+                                    "",
+                                    "",
+                                    "",
+                                    "",
+                                )
+                            ],
                             schema=schema,
                         ),
                     ]
