@@ -40,9 +40,12 @@ def extract_literals_on_dependencies(formula, literals):
 
 
 def factor_out(formula, literals):
+    print("factor out for formula, literals:", formula, literals)
     positive_factors = []
     negative_factors = []
     unprocessed_clauses = []
+    if not literals:
+        return formula
     literal = literals.pop(0)
 
     for clause in formula.ordered_children:
@@ -90,14 +93,24 @@ def factor_out(formula, literals):
             ),
         )
 
-    if negative_result and positive_result:
-        final_formula = And(positive_result, negative_result, *unprocessed_clauses)
-    elif positive_result:
-        final_formula = And(positive_result, *unprocessed_clauses)
-    elif negative_result:
-        final_formula = And(negative_result, *unprocessed_clauses)
+    if not unprocessed_clauses:
+        unprocessed_result = None
+    elif len(unprocessed_clauses) < 2:
+        unprocessed_result = Or(unprocessed_clauses[0])
     else:
-        final_formula = And(*unprocessed_clauses)
+        unprocessed_result = factor_out(
+            And(*unprocessed_clauses),
+            extract_literals_on_occurrences(And(*negative_factors), literals),
+        )
+
+    if negative_result and positive_result:
+        final_formula = And(positive_result, negative_result, unprocessed_result)
+    elif positive_result:
+        final_formula = And(positive_result, unprocessed_result)
+    elif negative_result:
+        final_formula = And(negative_result, unprocessed_result)
+    else:
+        final_formula = unprocessed_result
 
     return final_formula
 
