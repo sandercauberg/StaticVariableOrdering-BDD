@@ -39,6 +39,21 @@ def extract_literals_on_dependencies(formula, literals):
     return result
 
 
+def combine_results(
+    positive_result=None, negative_result=None, unprocessed_result=None
+):
+    # Filter out None values
+    filtered_results = filter(
+        lambda result: result is not None,
+        [positive_result, negative_result, unprocessed_result],
+    )
+
+    # Build the combined result using the symbolic logic functions
+    combined_result = And(*filtered_results) if filtered_results else None
+
+    return combined_result
+
+
 def factor_out(formula, literals):
     positive_factors = []
     negative_factors = []
@@ -102,14 +117,9 @@ def factor_out(formula, literals):
             extract_literals_on_occurrences(And(*negative_factors), literals),
         )
 
-    if negative_result and positive_result:
-        final_formula = And(positive_result, negative_result, unprocessed_result)
-    elif positive_result:
-        final_formula = And(positive_result, unprocessed_result)
-    elif negative_result:
-        final_formula = And(negative_result, unprocessed_result)
-    else:
-        final_formula = unprocessed_result
+    final_formula = combine_results(
+        positive_result, negative_result, unprocessed_result
+    )
 
     return final_formula
 
