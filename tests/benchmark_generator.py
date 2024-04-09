@@ -112,8 +112,8 @@ for file_name in sorted(os.listdir(folder_path)):
                                 (
                                     file_name,
                                     command,
-                                    f"Error: {e}",
                                     "",
+                                    f"Error: {e}",
                                     "",
                                     "",
                                     "",

@@ -48,8 +48,13 @@ def combine_results(
         [positive_result, negative_result, unprocessed_result],
     )
 
-    # Build the combined result using the symbolic logic functions
-    combined_result = And(*filtered_results) if filtered_results else None
+    filtered_results = list(filtered_results)
+
+    combined_result = None
+    if len(filtered_results) > 1:
+        combined_result = And(*filtered_results)
+    elif len(filtered_results) == 1:
+        combined_result = filtered_results[0]
 
     return combined_result
 
@@ -114,7 +119,7 @@ def factor_out(formula, literals):
     else:
         unprocessed_result = factor_out(
             And(*unprocessed_clauses),
-            extract_literals_on_occurrences(And(*negative_factors), literals),
+            extract_literals_on_occurrences(And(*unprocessed_clauses), literals),
         )
 
     final_formula = combine_results(
@@ -149,14 +154,20 @@ def to_bc(formula, circuit):
             negated_variable = formula.child
             return f"not_var_{negated_variable}"
         elif isinstance(formula, Or):
-            if len(formula.children) < 2:
+            unique_children = tuple(
+                {str(element): element for element in formula.children}.keys()
+            )
+            if len(unique_children) < 2:
                 return build_circuit(next(iter(formula.children)))
             gate_name = f"or_{id(formula)}"
             fanins = [build_circuit(child) for child in formula.ordered_children]
             circuit.add(gate_name, "or", fanins)
             return gate_name
         elif isinstance(formula, And):
-            if len(formula.children) < 2:
+            unique_children = tuple(
+                {str(element): element for element in formula.children}.keys()
+            )
+            if len(unique_children) < 2:
                 return build_circuit(next(iter(formula.children)))
             gate_name = f"and_{id(formula)}"
             fanins = [build_circuit(child) for child in formula.ordered_children]
