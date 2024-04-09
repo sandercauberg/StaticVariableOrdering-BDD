@@ -44,6 +44,10 @@ class MyCLI(cmd.Cmd):
         parse.add_argument("-dump", action="store_true", help="Dump BDDs to PNG files")
         parse.add_argument("-heuristic", help="Choose a specific heuristic")
         parse.add_argument("-transform", help="Choose a transformation process")
+        parse.add_argument(
+            "-factor_out",
+            help="Choose a method for factoring out in transformation process",
+        )
 
         try:
             args = parse.parse_args(arg.split())
@@ -79,7 +83,7 @@ class MyCLI(cmd.Cmd):
         if args.transform:
             # TODO if more transformations are available, take arguments directly
             if input_format == "cnf" and args.transform == "bc":
-                formula = cnf2bc(formula)
+                formula = cnf2bc(formula, args.factor_out)
                 print(f"Transformed from {input_format} to {args.transform}")
                 input_format = "bc"
             elif input_format == "cnf" and args.transform == "hypergraph":
@@ -123,6 +127,7 @@ class MyCLI(cmd.Cmd):
         return {
             "File": args.filename,
             "Command": f"choose {args.filename}",
+            "Factor_out": args.factor_out or "occurrences",
             "Result": {
                 "Order": order_string,
                 "Parsing Time": parsing_time,

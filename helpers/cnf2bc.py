@@ -40,7 +40,6 @@ def extract_literals_on_dependencies(formula, literals):
 
 
 def factor_out(formula, literals):
-    print("factor out for formula, literals:", formula, literals)
     positive_factors = []
     negative_factors = []
     unprocessed_clauses = []
@@ -115,9 +114,12 @@ def factor_out(formula, literals):
     return final_formula
 
 
-def cnf2bc(cnf_formula):
+def cnf2bc(cnf_formula, factor_out_method=None):
     literals = cnf_formula.extract_variables()
-    sorted_literals = extract_literals_on_occurrences(cnf_formula, literals)
+    if factor_out_method == "dependencies":
+        sorted_literals = extract_literals_on_dependencies(cnf_formula, literals)
+    else:
+        sorted_literals = extract_literals_on_occurrences(cnf_formula, literals)
 
     formula = factor_out(cnf_formula, sorted_literals)
     circuit = CustomCircuit()

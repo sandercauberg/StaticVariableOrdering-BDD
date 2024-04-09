@@ -9,12 +9,15 @@ commands_dict = {
         "{}",
         "{} -heuristic fanin",
         "{} -transform bc",
+        "{} -transform bc -factor_out dependencies",
         "{} -transform bc -heuristic weight",
+        "{} -transform bc -factor_out dependencies -heuristic weight",
         "{} -transform bc -heuristic fanin",
+        "{} -transform bc -factor_out dependencies -heuristic fanin",
         "{} -transform bc -heuristic dependent",
+        "{} -transform bc -factor_out dependencies -heuristic dependent",
     ],
     "BC": [
-        "{}",
         "{}",
         "{} -heuristic weight",
         "{} -heuristic fanin",
@@ -24,12 +27,14 @@ commands_dict = {
 
 # Specify the folder containing the files
 folder_path = os.path.abspath("../input_files/benchmark_test")
+chosen_input = "CNF"  # Change this to switch between lists of commands
 my_cli = main.MyCLI()
 
 # Create an empty Polars DataFrame to store the results
 schema = [
     ("File", str),
     ("Command", str),
+    ("Factor_out", str),
     ("Error", str),
     ("Order", str),
     ("Parsing Time", str),
@@ -43,7 +48,7 @@ schema = [
 ]
 df = pl.DataFrame([], schema=schema)
 
-commands = commands_dict["CNF"]  # Change this to switch between lists of commands
+commands = commands_dict[chosen_input]
 
 # Iterate over the files in the folder
 for file_name in sorted(os.listdir(folder_path)):
@@ -64,7 +69,11 @@ for file_name in sorted(os.listdir(folder_path)):
                             [
                                 (
                                     result_dict["File"],
-                                    result_dict["Command"],
+                                    formatted_command,
+                                    result_dict["Factor_out"]
+                                    if chosen_input == "CNF"
+                                    and "transform bc" in formatted_command
+                                    else "-",
                                     "-",
                                     result_dict["Result"]["Order"],
                                     result_dict["Result"]["Parsing Time"],
@@ -104,6 +113,7 @@ for file_name in sorted(os.listdir(folder_path)):
                                     file_name,
                                     command,
                                     f"Error: {e}",
+                                    "",
                                     "",
                                     "",
                                     "",
