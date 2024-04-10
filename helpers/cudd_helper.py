@@ -23,9 +23,35 @@ def build_bdd_from_circuit(circuit, var_order):
 
     # Mapping of gate types to BDD operations
     gate_to_op = {
-        "nand": lambda u, v: bdd.apply("not", bdd.apply("and", u, v)),
-        "nor": lambda u, v: bdd.apply("not", bdd.apply("or", u, v)),
+        "nand": lambda *args: nand_operation(args),
+        "nor": lambda *args: nor_operation(args),
     }
+
+    def nand_operation(args):
+        bdd_node = None
+        while args:
+            if bdd_node is None:
+                bdd_node = bdd.apply("and", args[0], args[1])
+                args = args[2:]
+            else:
+                bdd_node = bdd.apply("and", bdd_node, args[0])
+                args = args[1:]
+
+        bdd_node = bdd.apply("not", bdd_node)
+        return bdd_node
+
+    def nor_operation(args):
+        bdd_node = None
+        while args:
+            if bdd_node is None:
+                bdd_node = bdd.apply("or", args[0], args[1])
+                args = args[2:]
+            else:
+                bdd_node = bdd.apply("or", bdd_node, args[0])
+                args = args[1:]
+
+        bdd_node = bdd.apply("not", bdd_node)
+        return bdd_node
 
     # Process input nodes first
     [bdd.add_var(node) for node in var_order]
@@ -73,23 +99,15 @@ def build_bdd_from_circuit(circuit, var_order):
                         bdd_op = gate_to_op.get(op)
 
                         if bdd_node is None:
-                            bdd_node = (
-                                bdd_op(Function_u, Function_v)
-                                if callable(bdd_op)
-                                else bdd.apply(op, Function_u, Function_v)
-                            )
+                            if callable(bdd_op):
+                                bdd_node = bdd_op(*(args_to_apply + remaining_args))
+                                remaining_args = []
+                            else:
+                                bdd_node = bdd.apply(op, Function_u, Function_v)
                         else:
-                            bdd_node = (
-                                bdd_op(Function_u, Function_v)
-                                if callable(bdd_op)
-                                else bdd.apply(op, bdd_node, Function_u)
-                            )
+                            bdd_node = bdd.apply(op, bdd_node, Function_u)
                             if Function_v:
-                                bdd_node = (
-                                    bdd_op(bdd_node, Function_v)
-                                    if callable(bdd_op)
-                                    else bdd.apply(op, bdd_node, Function_v)
-                                )
+                                bdd_node = bdd.apply(op, bdd_node, Function_v)
 
                     if node_instance["output"] is True:
                         roots.append(bdd_node)
