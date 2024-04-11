@@ -2,6 +2,7 @@ import re
 import time
 
 from dd.cudd import BDD
+
 from meta.circuit import CustomCircuit
 
 
@@ -23,34 +24,30 @@ def build_bdd_from_circuit(circuit, var_order):
 
     # Mapping of gate types to BDD operations
     gate_to_op = {
-        "nand": lambda *args: nand_operation(args),
-        "nor": lambda *args: nor_operation(args),
+        "nand": lambda *args: bdd.apply("not", nand_operation(args)),
+        "nor": lambda *args: bdd.apply("not", nor_operation(args)),
     }
 
     def nand_operation(args):
-        bdd_node = None
-        while args:
-            if bdd_node is None:
-                bdd_node = bdd.apply("and", args[0], args[1])
-                args = args[2:]
-            else:
-                bdd_node = bdd.apply("and", bdd_node, args[0])
-                args = args[1:]
-
-        bdd_node = bdd.apply("not", bdd_node)
+        if len(args) >= 2:
+            bdd_node = bdd.apply(
+                "and",
+                nand_operation(args[: len(args) // 2]),
+                nand_operation(args[len(args) // 2 :]),
+            )
+        else:
+            bdd_node = args[0]
         return bdd_node
 
     def nor_operation(args):
-        bdd_node = None
-        while args:
-            if bdd_node is None:
-                bdd_node = bdd.apply("or", args[0], args[1])
-                args = args[2:]
-            else:
-                bdd_node = bdd.apply("or", bdd_node, args[0])
-                args = args[1:]
-
-        bdd_node = bdd.apply("not", bdd_node)
+        if len(args) >= 2:
+            bdd_node = bdd.apply(
+                "or",
+                nor_operation(args[: len(args) // 2]),
+                nor_operation(args[len(args) // 2 :]),
+            )
+        else:
+            bdd_node = args[0]
         return bdd_node
 
     # Process input nodes first
@@ -68,11 +65,7 @@ def build_bdd_from_circuit(circuit, var_order):
                     if name in circuit.inputs():
                         fanin_nodes.append(bdd.var(name))
                     else:
-                        if name not in gate_nodes:
-                            bdd_node = bdd.add_var(name)
-                            gate_nodes[name] = bdd_node
-                        else:
-                            bdd_node = gate_nodes[name]
+                        bdd_node = gate_nodes[name]
                         fanin_nodes.append(bdd_node)
 
                 if node_instance["type"] == "buf":
@@ -83,7 +76,7 @@ def build_bdd_from_circuit(circuit, var_order):
                     bdd_node = None
 
                     while remaining_args:
-                        if len(remaining_args) >= 2:
+                        if len(remaining_args) > 2:
                             args_to_apply = remaining_args[:2]
                             remaining_args = remaining_args[2:]
                         else:

@@ -1,6 +1,6 @@
 import pytest
 
-from meta.formula import Variable, Not, And, Or, Formula
+from meta.formula import And, Formula, Not, Or, Variable
 
 
 def test_evaluation():

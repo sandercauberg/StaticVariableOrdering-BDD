@@ -1,10 +1,10 @@
 import os
+import parser
 import tempfile
 
 import circuitgraph
 import pytest
 
-import parser
 from meta.circuit import CustomCircuit
 
 

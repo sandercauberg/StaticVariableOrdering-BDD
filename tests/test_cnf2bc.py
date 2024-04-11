@@ -1,5 +1,5 @@
 from helpers import cnf2bc
-from meta.formula import Variable, And, Or
+from meta.formula import And, Or, Variable
 
 
 def create_variables(*names):

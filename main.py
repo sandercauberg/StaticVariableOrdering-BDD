@@ -1,15 +1,13 @@
+import argparse
 import cmd
 import os
-import argparse
+import parser
 import time
 
-import parser
 from helpers.bc2cnf import bc2cnf
+from helpers.cnf2bc import cnf2bc
 from helpers.cnf2hypergraph import cnf2hypergraph
 from helpers.cudd_helper import create_bdd
-
-from helpers.cnf2bc import cnf2bc
-
 from heuristics import heuristics
 
 

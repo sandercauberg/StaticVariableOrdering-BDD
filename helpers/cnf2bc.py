@@ -1,5 +1,5 @@
 from meta.circuit import CustomCircuit
-from meta.formula import Not, And, Or, Variable
+from meta.formula import And, Not, Or, Variable
 
 
 def extract_literals_on_occurrences(formula, literals):

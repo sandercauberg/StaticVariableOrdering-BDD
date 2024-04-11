@@ -1,9 +1,8 @@
 import os
+import parser
 import tempfile
 
 import circuitgraph as cg
-
-import parser
 
 
 def bc2cnf(circuit):

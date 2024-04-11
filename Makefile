@@ -4,9 +4,10 @@ install:
 
 format:
 	black ./ --experimental-string-processing
+	isort . --profile=black
 
 lint:
-	flake8 --exclude=./venv/,./dd-*/ --max-line-length 88
+	flake8 --exclude=./venv/,./dd-*/ --max-line-length 88 --ignore=E203,W503
 
 test:
 	pytest ./tests/

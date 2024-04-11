@@ -1,9 +1,10 @@
 import collections
 import typing
 
-from meta.circuit import CustomCircuit
-from meta.formula import And, Or, Variable, Not
 import circuitgraph as cg
+
+from meta.circuit import CustomCircuit
+from meta.formula import And, Not, Or, Variable
 
 
 class ParserWarning(Exception):
