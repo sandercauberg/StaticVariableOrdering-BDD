@@ -14,6 +14,16 @@ class Formula:
     def eval(self, v):
         raise NotImplementedError("Plain formula can not be evaluated")
 
+    def is_cnf(self):
+        return (
+            isinstance(self, And)
+            and all(isinstance(child, Or) for child in self.children)
+            and all(
+                (isinstance(var, Variable) for var in child.children)
+                for child in self.children
+            )
+        )
+
     def extract_variables(self):
         variables = set()
         if isinstance(self, Variable):

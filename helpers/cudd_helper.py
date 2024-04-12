@@ -24,27 +24,29 @@ def build_bdd_from_circuit(circuit, var_order):
 
     # Mapping of gate types to BDD operations
     gate_to_op = {
-        "nand": lambda *args: bdd.apply("not", nand_operation(args)),
-        "nor": lambda *args: bdd.apply("not", nor_operation(args)),
+        "and": lambda *args: and_operation(args),
+        "or": lambda *args: or_operation(args),
+        "nand": lambda *args: bdd.apply("not", and_operation(args)),
+        "nor": lambda *args: bdd.apply("not", or_operation(args)),
     }
 
-    def nand_operation(args):
+    def and_operation(args):
         if len(args) >= 2:
             bdd_node = bdd.apply(
                 "and",
-                nand_operation(args[: len(args) // 2]),
-                nand_operation(args[len(args) // 2 :]),
+                and_operation(args[: len(args) // 2]),
+                and_operation(args[len(args) // 2 :]),
             )
         else:
             bdd_node = args[0]
         return bdd_node
 
-    def nor_operation(args):
+    def or_operation(args):
         if len(args) >= 2:
             bdd_node = bdd.apply(
                 "or",
-                nor_operation(args[: len(args) // 2]),
-                nor_operation(args[len(args) // 2 :]),
+                or_operation(args[: len(args) // 2]),
+                or_operation(args[len(args) // 2 :]),
             )
         else:
             bdd_node = args[0]

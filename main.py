@@ -107,11 +107,12 @@ class MyCLI(cmd.Cmd):
             )
             return
 
+        start_ordering_time = time.perf_counter()
         heuristic_module = __import__(module_path, fromlist=[""])
         order_string, var_order = heuristic_module.calculate(formula)
 
         end_time = time.perf_counter()
-        ordering_time = end_time - parsed_time
+        ordering_time = end_time - start_ordering_time
         print(
             "The order: "
             + order_string
