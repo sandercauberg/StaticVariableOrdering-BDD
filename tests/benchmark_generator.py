@@ -54,14 +54,22 @@ commands = commands_dict[chosen_input]
 # Iterate over the files in the folder
 for file_name in sorted(os.listdir(folder_path)):
     file_path = os.path.join(folder_path, file_name)
+    bdd = None
     # We do not want to include sub-folders and files, so we check if it is a file
     if os.path.isfile(file_path):
+        file_data = {"File": file_name}
+
         # Apply the list of commands to the current file
         for command in commands:
             try:
                 formatted_command = command.format(file_path)
                 # Execute the command with the file name as an argument
-                result_dict = main.MyCLI.do_choose(my_cli, formatted_command)
+                result_dict = main.MyCLI.do_choose(my_cli, formatted_command, bdd=bdd)
+                print("result dict:", result_dict)
+                bdd = dict(
+                    tree=result_dict["Result"]["BDD Info"]["BDD"]["tree"],
+                    roots=result_dict["Result"]["BDD Info"]["BDD"]["roots"],
+                )
                 # Append the result to the main DataFrame
                 df = pl.concat(
                     [

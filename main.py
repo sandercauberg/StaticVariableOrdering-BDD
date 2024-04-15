@@ -35,7 +35,7 @@ class MyCLI(cmd.Cmd):
         for item in files_and_dirs:
             print(item)
 
-    def do_choose(self, arg):
+    def do_choose(self, arg, bdd=None):
         """Choose the input file to create a variable ordering"""
         parse = argparse.ArgumentParser(description="description_ARGPARSE")
         parse.add_argument("filename", help="Name of the input file")
@@ -121,7 +121,7 @@ class MyCLI(cmd.Cmd):
             + " seconds."
         )
 
-        bdd_info = create_bdd(input_format, formula, var_order, args.dump)
+        bdd_info = create_bdd(input_format, formula, var_order, bdd=bdd, dump=args.dump)
 
         return {
             "File": args.filename,

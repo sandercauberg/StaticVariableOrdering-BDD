@@ -53,7 +53,7 @@ def build_bdd_from_circuit(circuit, var_order):
         return bdd_node
 
     # Process input nodes first
-    [bdd.add_var(node) for node in var_order]
+    # [bdd.add_var(node) for node in var_order]
 
     # Traverse the Boolean circuit level by level
     max_depth = max(circuit.fanout_depth(node) for node in circuit.inputs())
@@ -115,14 +115,16 @@ def build_bdd_from_circuit(circuit, var_order):
     return bdd, roots
 
 
-def create_bdd(input_format, formula, var_order, dump=False):
+def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
     # Create BDD with CuDD
     formulas = []
     bdd_creation_time_start = time.perf_counter()
-    if input_format in ["bc", "v"]:
+    if input_format in ["bc", "v"] and bdd is None:
         original_order = CustomCircuit.get_ordered_inputs(formula)
         var_names = [f"var_{var}" for var in original_order]
         bdd, roots = build_bdd_from_circuit(formula, original_order)
+    elif bdd is not None:
+        bdd, roots = bdd.get("tree"), bdd.get("roots")
     else:
         variables = formula.extract_variables()
         var_names = [f"var_{var}" for var in variables]
@@ -193,6 +195,7 @@ def create_bdd(input_format, formula, var_order, dump=False):
         new_bdd.dump("bdd_output.png", roots=new_bdd_roots, filetype="png")
 
     return {
+        "BDD": {"tree": bdd, "roots": roots},
         "Original BDD creation time": bdd_creation_time,
         "Original BDD size": len(bdd),
         "Original BDD # of satisfying assignments": bdd_satisfying_assignments,
