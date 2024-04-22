@@ -12,7 +12,7 @@ def count_satisfying_assignments(bdd, roots):
         conjunction = bdd.apply("and", conjunction, root)
     # for assignment in bdd.pick_iter(conjunction):
     #     print("Satisfying Assignment:", assignment)
-    return bdd.count(conjunction)
+    return bdd.count(conjunction, nvars=len(bdd.vars))
 
 
 def build_bdd_from_circuit(circuit, var_order):
@@ -32,14 +32,14 @@ def build_bdd_from_circuit(circuit, var_order):
 
     def and_operation(args):
         if len(args) >= 2:
-            bdd_node = bdd.apply(
+            node = bdd.apply(
                 "and",
                 and_operation(args[: len(args) // 2]),
                 and_operation(args[len(args) // 2 :]),
             )
         else:
-            bdd_node = args[0]
-        return bdd_node
+            node = args[0]
+        return node
 
     def or_operation(args):
         if len(args) >= 2:
