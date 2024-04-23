@@ -1,6 +1,7 @@
 import re
 import time
 
+import circuitgraph
 from dd.cudd import BDD
 
 from meta.circuit import CustomCircuit
@@ -16,6 +17,11 @@ def count_satisfying_assignments(bdd, roots):
 
 
 def build_bdd_from_circuit(circuit, var_order):
+    print(
+        circuitgraph.sat.model_count(
+            circuit, assumptions={output: True for output in circuit.outputs()}
+        )
+    )
     bdd = BDD()
     bdd.configure(reordering=False)
     bdd.declare(*var_order)
@@ -24,33 +30,22 @@ def build_bdd_from_circuit(circuit, var_order):
 
     # Mapping of gate types to BDD operations
     gate_to_op = {
-        "and": lambda *args: and_operation(args),
-        "or": lambda *args: or_operation(args),
-        "nand": lambda *args: bdd.apply("not", and_operation(args)),
-        "nor": lambda *args: bdd.apply("not", or_operation(args)),
+        "and": lambda *args: and_or_operation("and", args),
+        "or": lambda *args: and_or_operation("or", args),
+        "nand": lambda *args: bdd.apply("not", and_or_operation("and", args)),
+        "nor": lambda *args: bdd.apply("not", and_or_operation("or", args)),
     }
 
-    def and_operation(args):
+    def and_or_operation(op, args):
         if len(args) >= 2:
             node = bdd.apply(
-                "and",
-                and_operation(args[: len(args) // 2]),
-                and_operation(args[len(args) // 2 :]),
+                op,
+                and_or_operation(op, args[: len(args) // 2]),
+                and_or_operation(op, args[len(args) // 2 :]),
             )
         else:
             node = args[0]
         return node
-
-    def or_operation(args):
-        if len(args) >= 2:
-            bdd_node = bdd.apply(
-                "or",
-                or_operation(args[: len(args) // 2]),
-                or_operation(args[len(args) // 2 :]),
-            )
-        else:
-            bdd_node = args[0]
-        return bdd_node
 
     # Process input nodes first
     # [bdd.add_var(node) for node in var_order]
@@ -121,7 +116,6 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
     bdd_creation_time_start = time.perf_counter()
     if input_format in ["bc", "v"] and bdd is None:
         original_order = CustomCircuit.get_ordered_inputs(formula)
-        var_names = [f"var_{var}" for var in original_order]
         bdd, roots = build_bdd_from_circuit(formula, original_order)
     elif bdd is not None:
         bdd, roots = bdd.get("tree"), bdd.get("roots")
