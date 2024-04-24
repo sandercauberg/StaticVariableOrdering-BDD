@@ -61,9 +61,6 @@ for file_name in sorted(os.listdir(folder_path)):
                         result_dict["Result"]["Parsing Time"],
                         result_dict["Result"]["BDD Info"]["Original BDD creation time"],
                         result_dict["Result"]["BDD Info"]["Original BDD size"],
-                        result_dict["Result"]["BDD Info"][
-                            "Original BDD # of satisfying assignments"
-                        ],
                     ]
 
                 file_row.extend(
@@ -77,9 +74,6 @@ for file_name in sorted(os.listdir(folder_path)):
                             "Reordered BDD creation time"
                         ],
                         result_dict["Result"]["BDD Info"]["Reordered BDD size"],
-                        result_dict["Result"]["BDD Info"][
-                            "Reordered BDD # of satisfying assignments"
-                        ],
                     ]
                 )
             except Exception as e:
@@ -94,7 +88,6 @@ columns = [
     "Parsing Time",
     "Original BDD Creation Time",
     "Original BDD Size",
-    "Original BDD # of satisfying assignments",
 ]
 
 # Add columns for each command result
@@ -106,7 +99,6 @@ for command_index in range(len(commands)):
             f"Ordering Time {command_index+1}",
             f"Reordered BDD creation time {command_index+1}",
             f"Reordered BDD size {command_index+1}",
-            f"Reordered BDD # of satisfying assignments {command_index+1}",
         ]
     )
 

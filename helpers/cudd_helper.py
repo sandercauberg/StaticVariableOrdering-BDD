@@ -1,7 +1,6 @@
 import re
 import time
 
-import circuitgraph
 from dd.cudd import BDD
 
 from meta.circuit import CustomCircuit
@@ -10,18 +9,13 @@ from meta.circuit import CustomCircuit
 def count_satisfying_assignments(bdd, roots):
     conjunction = bdd.true
     for root in roots:
-        conjunction = bdd.apply("and", conjunction, root)
+        conjunction = bdd.apply("or", conjunction, root)
     # for assignment in bdd.pick_iter(conjunction):
     #     print("Satisfying Assignment:", assignment)
     return bdd.count(conjunction, nvars=len(bdd.vars))
 
 
 def build_bdd_from_circuit(circuit, var_order):
-    print(
-        circuitgraph.sat.model_count(
-            circuit, assumptions={output: True for output in circuit.outputs()}
-        )
-    )
     bdd = BDD()
     bdd.configure(reordering=False)
     bdd.declare(*var_order)
@@ -148,7 +142,7 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
     print("BDD Before Reordering:")
     print(bdd)
     print("Amount of nodes: ", len(bdd))
-    print("Number of satisfying assignments: " + str(bdd_satisfying_assignments))
+    # print("Number of satisfying assignments: " + str(bdd_satisfying_assignments))
 
     new_bdd_creation_time_start = time.perf_counter()
 
@@ -173,7 +167,7 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
     print("BDD After Reordering:")
     print(new_bdd)
     print("Amount of nodes: ", len(new_bdd))
-    print("Number of satisfying assignments: " + str(new_bdd_satisfying_assignments))
+    # print("Number of satisfying assignments: " + str(new_bdd_satisfying_assignments))
     assert bdd_satisfying_assignments == new_bdd_satisfying_assignments
     if input_format in ["bc", "v"]:
         # We cannot do this assertion as the BDD is optimized,
@@ -192,8 +186,6 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
         "BDD": {"tree": bdd, "roots": roots},
         "Original BDD creation time": bdd_creation_time,
         "Original BDD size": len(bdd),
-        "Original BDD # of satisfying assignments": bdd_satisfying_assignments,
         "Reordered BDD creation time": new_bdd_creation_time,
         "Reordered BDD size": len(new_bdd),
-        "Reordered BDD # of satisfying assignments": new_bdd_satisfying_assignments,
     }
