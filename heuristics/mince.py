@@ -23,9 +23,12 @@ def is_balanced_cut(hypergraph, cut):
 def powerset(iterable):
     """
     Generate the powerset of an iterable.
+    Only include subsets with length > 1/3 and <= 1/2 of the original set.
     """
     s = list(iterable)
-    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
+    return chain.from_iterable(
+        combinations(s, r) for r in range(len(s) // 3, len(s) // 2 + 2)
+    )
 
 
 def balanced_mincut(hypergraph):

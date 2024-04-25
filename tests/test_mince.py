@@ -29,8 +29,10 @@ def test_powerset():
     hg = new_hypergraph()
 
     powerset = mince.powerset(hg.nodes())
-    print(powerset)
-    assert len(list((powerset))) == math.pow(2, len(hg.nodes()))
+    n = len(hg.nodes())
+    expected_length = sum(math.comb(n, r) for r in range(n // 3, n // 2 + 2))
+
+    assert len(list(powerset)) == expected_length
 
 
 def test_balanced_mincut():
