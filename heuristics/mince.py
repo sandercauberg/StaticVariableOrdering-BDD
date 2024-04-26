@@ -1,3 +1,5 @@
+from parser import ParserWarning
+
 import mtkahypar
 
 from helpers.cnf2hypergraph import cnf2hypergraph
@@ -104,7 +106,7 @@ def calculate(formula):
     elif isinstance(formula, Hypergraph):
         hypergraph = formula
     else:
-        raise Warning("Unknown formula input for MINCE algorithm.")
+        raise ParserWarning("Unknown formula input for MINCE algorithm.")
     mapping = hypergraph.convert_nodes_to_integers()
     mapping_reversed = {v: k for k, v in mapping.items()}
     result_kahypar = kahypar(hypergraph, mapping)

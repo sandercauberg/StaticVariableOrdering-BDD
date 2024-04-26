@@ -1,4 +1,5 @@
 from itertools import chain, combinations
+from parser import ParserWarning
 
 from helpers.cnf2hypergraph import cnf2hypergraph
 from meta.formula import Formula
@@ -83,7 +84,7 @@ def calculate(formula):
     elif isinstance(formula, Hypergraph):
         hypergraph = formula
     else:
-        raise Warning("Unknown formula input for MINCE algorithm.")
+        raise ParserWarning("Unknown formula input for MINCE algorithm.")
     result = mince(hypergraph)
     result_string = " < ".join(map(lambda x: str(x), result))
     result_list = result
