@@ -161,3 +161,18 @@ class Hypergraph:
             self.edge_links[hyperedge].remove(node)
         else:
             raise ValueError("Link (%s, %s) is not in graph" % (node, hyperedge))
+
+    def copy(self):
+        """
+        Create a copy of the hypergraph.
+        """
+        copied_hypergraph = Hypergraph()
+        copied_hypergraph.node_links = {
+            node: edges[:] for node, edges in self.node_links.items()
+        }
+        copied_hypergraph.edge_links = {
+            edge: nodes[:] for edge, nodes in self.edge_links.items()
+        }
+        copied_hypergraph.edge_labels = self.edge_labels.copy()
+
+        return copied_hypergraph
