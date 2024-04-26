@@ -1,5 +1,7 @@
 from itertools import chain, combinations
 
+from helpers.cnf2hypergraph import cnf2hypergraph
+from meta.formula import Formula
 from meta.hypergraph import Hypergraph
 
 
@@ -71,9 +73,14 @@ def mince(hypergraph):
     return subproblem_ordering_1 + subproblem_ordering_2
 
 
-def calculate(hypergraph):
+def calculate(formula):
+    if isinstance(formula, Formula) and formula.is_cnf():
+        hypergraph = cnf2hypergraph(formula)
+    elif isinstance(formula, Hypergraph):
+        hypergraph = formula
+    else:
+        raise Warning("Unknown formula input for MINCE algorithm.")
     result = mince(hypergraph)
-    print(result)
     result_string = " < ".join(map(lambda x: str(x), result))
     result_list = result
 
