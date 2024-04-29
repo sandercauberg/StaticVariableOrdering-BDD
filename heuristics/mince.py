@@ -60,13 +60,14 @@ def mince(hypergraph):
     for node in C:
         subproblem_1.add_node(node)
     for edge in hypergraph.hyperedges():
-        if set(edge).intersection(set(C)):
+        if set(edge).issubset(set(C)):
             subproblem_1.add_hyperedge(edge)
 
     for node in set(hypergraph.nodes()).difference(set(C)):
         subproblem_2.add_node(node)
     for edge in hypergraph.hyperedges():
-        if set(edge).intersection(set(hypergraph.nodes()).difference(set(C))):
+        not_C = [node for i, node in enumerate(hypergraph.nodes()) if i not in C]
+        if set(edge).issubset(not_C):
             subproblem_2.add_hyperedge(edge)
 
     # Recursive calls to MINCE algorithm on subproblems
