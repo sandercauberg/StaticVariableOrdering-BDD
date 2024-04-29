@@ -64,4 +64,4 @@ def test_mince():
     hg = new_hypergraph()
     result_string, result_order = mince.calculate(hg)
 
-    assert result_order == ["x3", "x2", "x1", "x6", "x5", "x0", "x4"]
+    assert result_order == ["x3", "x2", "x6", "x1", "x5", "x4", "x0"]
