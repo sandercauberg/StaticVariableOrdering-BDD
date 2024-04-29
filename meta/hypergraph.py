@@ -10,19 +10,21 @@
 # copies of the Software, and to permit persons to whom the
 # Software is furnished to do so, subject to the following
 # conditions:
+import mtkahypar
 
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
 
 
 class Hypergraph:
-    def __init__(self):
+    def __init__(self, nodes_mapping=None):
         """
         Initialize a hypergraph.
         """
         self.node_links = {}  # Pairing: Node -> Hyperedge
         self.edge_links = {}  # Pairing: Hyperedge -> Node
         self.edge_labels = {}  # Pairing: Hyperedge -> Label
+        self.nodes_mapping = nodes_mapping  # Node mapping for KaHyPar graphs
 
     def nodes(self):
         """
@@ -114,7 +116,7 @@ class Hypergraph:
         Add given hyperedges to the hypergraph, both with and without labels.
         """
         for item in edgelist:
-            if isinstance(item, tuple):
+            if isinstance(item, tuple) and isinstance(item[0], tuple):
                 edge, label = item
                 self.add_hyperedge(edge, label=label)
             else:
@@ -176,3 +178,51 @@ class Hypergraph:
         copied_hypergraph.edge_labels = self.edge_labels.copy()
 
         return copied_hypergraph
+
+    def convert_nodes_to_integers(self):
+        """
+        Convert node names to integers and replace them in node_links and edge_links.
+        Return the mapping.
+        """
+        if self.nodes_mapping is None:
+            nodes_mapping = {node: idx for idx, node in enumerate(self.nodes())}
+
+            # Replace node names in node_links
+            new_node_links = {}
+            for node, edges in self.node_links.items():
+                new_node_links[nodes_mapping[node]] = [
+                    tuple(nodes_mapping[n] for n in edge) for edge in edges
+                ]
+
+            # Replace node names in edge_links
+            new_edge_links = {}
+            for edge, nodes in self.edge_links.items():
+                new_edge_links[tuple(nodes_mapping[n] for n in edge)] = [
+                    nodes_mapping[node] for node in nodes
+                ]
+
+            # Update nodes_mapping and links
+            self.nodes_mapping = nodes_mapping
+            self.node_links = new_node_links
+            self.edge_links = new_edge_links
+
+        return self.nodes_mapping
+
+    def to_kahypar(self):
+        """
+        Convert the hypergraph into a format compatible with mtkahypar.
+
+        Returns:
+            MTKahyparHypergraph: A Hypergraph instance compatible with mtkahypar.
+        """
+        num_hypernodes = len(self.nodes())
+        num_hyperedges = len(self.hyperedges())
+
+        # Create a new instance of mtkahypar.Hypergraph based on the data
+        mtkahypar_hypergraph = mtkahypar.Hypergraph(
+            num_hypernodes=num_hypernodes,
+            num_hyperedges=num_hyperedges,
+            hyperedges=self.hyperedges(),
+        )
+
+        return mtkahypar_hypergraph, self.hyperedges()
