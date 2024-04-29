@@ -3,21 +3,5 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/mt-kahypar" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/WHFC" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/googletest" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/growt" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/growt/misc/submodules/folly" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/growt/misc/submodules/junction" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/growt/misc/submodules/libcuckoo" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/growt/misc/submodules/smhasher" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/growt/misc/submodules/smhasher/SHA-Intrinsics" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/growt/misc/submodules/smhasher/hash-garage" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/growt/misc/submodules/smhasher/mx3" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/growt/misc/submodules/smhasher/prvhash" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/growt/misc/submodules/turf" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/growt/misc/submodules/xxhash" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/growt/utils" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/external_tools/kahypar-shared-resources" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mt-kahypar/python/pybind11" vcs="Git" />
   </component>
 </project>
