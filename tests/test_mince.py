@@ -1,6 +1,6 @@
 import math
 
-from heuristics import mince
+from heuristics import mince_manual
 from meta.hypergraph import Hypergraph
 
 
@@ -28,7 +28,7 @@ def new_hypergraph():
 def test_powerset():
     hg = new_hypergraph()
 
-    powerset = mince.powerset(hg.nodes())
+    powerset = mince_manual.powerset(hg.nodes())
     n = len(hg.nodes())
     expected_length = sum(math.comb(n, r) for r in range(n // 3, n // 2 + 2))
 
@@ -38,7 +38,7 @@ def test_powerset():
 def test_balanced_mincut():
     hg = new_hypergraph()
 
-    set_1_1 = set(mince.balanced_mincut(hg))
+    set_1_1 = set(mince_manual.balanced_mincut(hg))
     set_1_2 = set(hg.nodes()).difference(set_1_1)
 
     assert set_1_1 == {"x1", "x2", "x3", "x6"}
@@ -49,9 +49,9 @@ def test_balanced_mincut():
     [hypergraph_1.del_node(node) for node in set_1_2]
     [hypergraph_2.del_node(node) for node in set_1_1]
 
-    set_2_1 = set(mince.balanced_mincut(hypergraph_1))
+    set_2_1 = set(mince_manual.balanced_mincut(hypergraph_1))
     set_2_2 = set(hypergraph_1.nodes()).difference(set_2_1)
-    set_2_3 = set(mince.balanced_mincut(hypergraph_2))
+    set_2_3 = set(mince_manual.balanced_mincut(hypergraph_2))
     set_2_4 = set(hypergraph_2.nodes()).difference(set_2_3)
 
     assert set_2_1 == {"x2", "x3"}
@@ -62,6 +62,6 @@ def test_balanced_mincut():
 
 def test_mince():
     hg = new_hypergraph()
-    result_string, result_order = mince.calculate(hg)
+    result_string, result_order = mince_manual.calculate(hg)
 
     assert result_order == ["x3", "x2", "x6", "x1", "x5", "x4", "x0"]

@@ -4,7 +4,11 @@ heuristics_boolean_circuits = {
     "dependent": "heuristics.bc_dependent_count",
 }
 
-heuristics_cnf = {"fanin": "heuristics.fanin", "mince": "heuristics.mince"}
+heuristics_cnf = {
+    "fanin": "heuristics.fanin",
+    "mince": "heuristics.mince",
+    "mince_manual": "heuristics.mince_manual",
+}
 
 heuristics_sat = {"fanin": "heuristics.fanin"}
 
