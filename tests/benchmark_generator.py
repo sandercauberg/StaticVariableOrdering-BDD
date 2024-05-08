@@ -79,7 +79,6 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
                     if (
                         command_index == 0
                     ):  # Only fill in these columns for the first command
-                        print("COMMAND index 0, formatted command:", formatted_command)
                         file_row = [
                             file_name,
                             result_dict["Result"]["Parsing Time"],
@@ -103,9 +102,13 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
                             result_dict["Result"]["BDD Info"]["Reordered BDD size"],
                         ]
                     )
+                except MemoryError as mem_error:
+                    file_row.extend([f"{command}: {mem_error}", "", "", "", ""])
+                    # Handle MemoryError gracefully, log the error if needed
+                    # break  # Move to the next file
                 except Exception as e:
                     # If an error occurs, add placeholders for the command's columns
-                    file_row.extend([command + str(e), "", "", "", "", ""])
+                    file_row.extend([command + str(e), "", "", "", ""])
             # Append the file_row list to the rows list
             rows.append(file_row)
 

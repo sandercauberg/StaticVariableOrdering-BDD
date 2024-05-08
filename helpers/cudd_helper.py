@@ -1,7 +1,7 @@
 import re
 import time
 
-from dd.cudd import BDD
+from dd import cudd
 
 from meta.circuit import CustomCircuit
 
@@ -16,7 +16,7 @@ def count_satisfying_assignments(bdd, roots):
 
 
 def build_bdd_from_circuit(circuit, var_order):
-    bdd = BDD()
+    bdd = cudd.BDD()
     bdd.configure(reordering=False)
     bdd.declare(*var_order)
     gate_nodes = {}
@@ -108,9 +108,11 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
     # Create BDD with CuDD
     formulas = []
     bdd_creation_time_start = time.perf_counter()
+    original_bdd_size = 0
     if input_format in ["bc", "v"] and bdd is None:
         original_order = CustomCircuit.get_ordered_inputs(formula)
         bdd, roots = build_bdd_from_circuit(formula, original_order)
+        original_bdd_size = len(bdd)
     elif bdd is not None:
         bdd, roots = bdd.get("tree"), bdd.get("roots")
     else:
@@ -126,7 +128,7 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
             formula = re.sub(r"\b" + re.escape(str(var)) + r"\b", f"var_{var}", formula)
         formulas.append(formula)
 
-        bdd = BDD()
+        bdd = cudd.BDD()
         bdd.configure(reordering=False)
         bdd.declare(*var_names)
         roots = []
@@ -144,13 +146,19 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
     print("Amount of nodes: ", len(bdd))
     # print("Number of satisfying assignments: " + str(bdd_satisfying_assignments))
 
+    if dump:
+        bdd.dump("bdd.png", roots=roots, filetype="png")
+
     new_bdd_creation_time_start = time.perf_counter()
 
     if input_format in ["bc", "v"]:
-        new_bdd, new_bdd_roots = build_bdd_from_circuit(formula, var_order)
+        my_favorite_order = {char: i for i, char in enumerate(var_order)}
+        cudd.reorder(bdd, my_favorite_order)
+        new_bdd_roots = roots
     else:
-        new_bdd = BDD()
+        new_bdd = cudd.BDD()
         new_bdd.configure(reordering=False)
+        var_names = [f"var_{var}" for var in var_order]
         new_bdd.declare(*var_names)
         new_bdd_roots = []
 
@@ -159,14 +167,12 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
             new_bdd_roots.append(root)
 
     new_bdd_creation_time = time.perf_counter() - new_bdd_creation_time_start
-    new_bdd_satisfying_assignments = count_satisfying_assignments(
-        new_bdd, new_bdd_roots
-    )
+    new_bdd_satisfying_assignments = count_satisfying_assignments(bdd, new_bdd_roots)
 
     # Print BDD after reordering
     print("BDD After Reordering:")
-    print(new_bdd)
-    print("Amount of nodes: ", len(new_bdd))
+    print(bdd)
+    print("Amount of nodes: ", len(bdd))
     # print("Number of satisfying assignments: " + str(new_bdd_satisfying_assignments))
     assert bdd_satisfying_assignments == new_bdd_satisfying_assignments
     if input_format in ["bc", "v"]:
@@ -179,13 +185,12 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
         # )
 
     if dump:
-        bdd.dump("bdd.png", roots=roots, filetype="png")
-        new_bdd.dump("bdd_output.png", roots=new_bdd_roots, filetype="png")
+        bdd.dump("bdd_output.png", roots=new_bdd_roots, filetype="png")
 
     return {
         "BDD": {"tree": bdd, "roots": roots},
         "Original BDD creation time": bdd_creation_time,
-        "Original BDD size": len(bdd),
+        "Original BDD size": original_bdd_size,
         "Reordered BDD creation time": new_bdd_creation_time,
-        "Reordered BDD size": len(new_bdd),
+        "Reordered BDD size": len(bdd),
     }

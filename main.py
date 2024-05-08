@@ -83,7 +83,7 @@ class MyCLI(cmd.Cmd):
                 formula = cnf2bc(formula, args.factor_out)
                 print(f"Transformed from {input_format} to {args.transform}")
                 input_format = "bc"
-            elif input_format == "bc" and args.transform == "cnf":
+            elif input_format in ["bc", "v"] and args.transform == "cnf":
                 formula = bc2cnf(formula)
                 print(f"Transformed from {input_format} to {args.transform}")
                 input_format = "cnf"
