@@ -1,6 +1,7 @@
 import argparse
 import concurrent.futures
 import os
+import signal
 import sys
 
 sys.path.append("..")
@@ -8,6 +9,27 @@ sys.path.append("..")
 import pandas as pd
 
 from main import MyCLI
+
+
+class Timeout:
+    """Timeout class using ALARM signal"""
+
+    class Timeout(Exception):
+        pass
+
+    def __init__(self, sec):
+        self.sec = sec
+
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.raise_timeout)
+        signal.alarm(self.sec)
+
+    def __exit__(self, *args):
+        signal.alarm(0)  # disable alarm
+
+    def raise_timeout(self, *args):
+        raise Timeout.Timeout()
+
 
 # Define the list of commands to apply to each file, per category
 commands_dict = {
@@ -56,6 +78,7 @@ chosen_input = args.category
 my_cli = MyCLI()
 
 rows = []
+bdd_sizes = {}
 commands = commands_dict[chosen_input]
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
@@ -69,40 +92,51 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
             # Apply the list of commands to the current file
             for command_index, command in enumerate(commands):
                 try:
-                    formatted_command = command.format(file_path)
-                    # Execute the command with the file name as an argument
-                    result_dict = MyCLI.do_choose(my_cli, formatted_command, bdd=bdd)
-                    bdd = dict(
-                        tree=result_dict["Result"]["BDD Info"]["BDD"]["tree"],
-                        roots=result_dict["Result"]["BDD Info"]["BDD"]["roots"],
-                    )
-                    if (
-                        command_index == 0
-                    ):  # Only fill in these columns for the first command
-                        file_row = [
-                            file_name,
-                            "",
-                            result_dict["Result"]["Parsing Time"],
-                            result_dict["Result"]["BDD Info"][
-                                "Original BDD creation time"
-                            ],
-                            result_dict["Result"]["BDD Info"]["Original BDD size"],
-                        ]
+                    with Timeout(60):
+                        formatted_command = command.format(file_path)
+                        # Execute the command with the file name as an argument
+                        result_dict = MyCLI.do_choose(
+                            my_cli, formatted_command, bdd=bdd
+                        )
+                        bdd = dict(
+                            tree=result_dict["Result"]["BDD Info"]["BDD"]["tree"],
+                            roots=result_dict["Result"]["BDD Info"]["BDD"]["roots"],
+                        )
+                        if (
+                            command_index == 0
+                        ):  # Only fill in these columns for the first command
+                            file_row = [
+                                file_name,
+                                "",
+                                result_dict["Result"]["Parsing Time"],
+                                result_dict["Result"]["BDD Info"][
+                                    "Original BDD creation time"
+                                ],
+                                result_dict["Result"]["BDD Info"]["Original BDD size"],
+                            ]
+                            bdd_sizes[(file_name, command)] = result_dict["Result"][
+                                "BDD Info"
+                            ]["Original BDD size"]
 
-                    file_row.extend(
-                        [
-                            command,
-                            result_dict["Factor_out"]
-                            if chosen_input == "CNF"
-                            and "transform bc" in formatted_command
-                            else "-",
-                            result_dict["Result"]["Ordering Time"],
-                            result_dict["Result"]["BDD Info"][
-                                "Reordered BDD creation time"
-                            ],
-                            result_dict["Result"]["BDD Info"]["Reordered BDD size"],
-                        ]
-                    )
+                        file_row.extend(
+                            [
+                                command,
+                                result_dict["Factor_out"]
+                                if chosen_input == "CNF"
+                                and "transform bc" in formatted_command
+                                else "-",
+                                result_dict["Result"]["Ordering Time"],
+                                result_dict["Result"]["BDD Info"][
+                                    "Reordered BDD creation time"
+                                ],
+                                result_dict["Result"]["BDD Info"]["Reordered BDD size"],
+                            ]
+                        )
+                        bdd_sizes[(file_name, command)] = result_dict["Result"][
+                            "BDD Info"
+                        ]["Reordered BDD size"]
+                except Timeout.Timeout:
+                    file_row.extend([command, "Time exceeded", "", "", ""])
                 except MemoryError as mem_error:
                     file_row.extend([command, f"Memory error: {mem_error}", "", "", ""])
                     # Handle MemoryError gracefully, log the error if needed
@@ -140,3 +174,17 @@ df = pd.DataFrame(rows, columns=columns)
 # Write the DataFrame to a CSV file
 csv_file_path = "benchmark_results.csv"
 df.to_csv(csv_file_path, index=False)
+
+bdd_df = pd.DataFrame(bdd_sizes.items(), columns=["File_Command", "BDD Size"])
+
+# Extract file names and commands from the "File_Command" column
+bdd_df["File"] = bdd_df["File_Command"].apply(lambda x: x[0])
+bdd_df["Command"] = bdd_df["File_Command"].apply(lambda x: x[1])
+bdd_df.drop(columns=["File_Command"], inplace=True)
+
+# Pivot the DataFrame to have commands as columns
+pivot_df = bdd_df.pivot(index="File", columns="Command", values="BDD Size")
+
+# Write the pivoted DataFrame to a CSV file
+csv_file_path_bdd = "bdd_sizes.csv"
+pivot_df.to_csv(csv_file_path_bdd)
