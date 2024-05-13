@@ -1,5 +1,6 @@
 import argparse
 import cmd
+import importlib
 import os
 import parser
 import time
@@ -103,7 +104,7 @@ class MyCLI(cmd.Cmd):
             return
 
         start_ordering_time = time.perf_counter()
-        heuristic_module = __import__(module_path, fromlist=[""])
+        heuristic_module = importlib.import_module(module_path)
         order_string, var_order = heuristic_module.calculate(formula)
 
         end_time = time.perf_counter()

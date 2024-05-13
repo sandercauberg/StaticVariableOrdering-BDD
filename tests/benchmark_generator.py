@@ -14,8 +14,8 @@ commands_dict = {
     "CNF": [
         "{}",
         "{} -heuristic fanin",
-        "{} -heuristic mince_manual",
-        "{} -heuristic mince",
+        # "{} -heuristic mince_manual",
+        # "{} -heuristic mince",
         "{} -transform bc",
         "{} -transform bc -factor_out dependencies",
         "{} -transform bc -heuristic weight",
@@ -81,6 +81,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
                     ):  # Only fill in these columns for the first command
                         file_row = [
                             file_name,
+                            "",
                             result_dict["Result"]["Parsing Time"],
                             result_dict["Result"]["BDD Info"][
                                 "Original BDD creation time"
@@ -103,18 +104,19 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
                         ]
                     )
                 except MemoryError as mem_error:
-                    file_row.extend([f"{command}: {mem_error}", "", "", "", ""])
+                    file_row.extend([command, f"Memory error: {mem_error}", "", "", ""])
                     # Handle MemoryError gracefully, log the error if needed
                     # break  # Move to the next file
                 except Exception as e:
                     # If an error occurs, add placeholders for the command's columns
-                    file_row.extend([command + str(e), "", "", "", ""])
+                    file_row.extend([command, str(e), "", "", ""])
             # Append the file_row list to the rows list
             rows.append(file_row)
 
 # Define the column names for the DataFrame
 columns = [
     "File",
+    "",
     "Parsing Time",
     "Original BDD Creation Time",
     "Original BDD Size",

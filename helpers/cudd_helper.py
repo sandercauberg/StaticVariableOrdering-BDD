@@ -108,11 +108,9 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
     # Create BDD with CuDD
     formulas = []
     bdd_creation_time_start = time.perf_counter()
-    original_bdd_size = 0
     if input_format in ["bc", "v"] and bdd is None:
         original_order = CustomCircuit.get_ordered_inputs(formula)
         bdd, roots = build_bdd_from_circuit(formula, original_order)
-        original_bdd_size = len(bdd)
     elif bdd is not None:
         bdd, roots = bdd.get("tree"), bdd.get("roots")
     else:
@@ -144,6 +142,7 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
     print("BDD Before Reordering:")
     print(bdd)
     print("Amount of nodes: ", len(bdd))
+    original_bdd_size = len(bdd)
     # print("Number of satisfying assignments: " + str(bdd_satisfying_assignments))
 
     if dump:
@@ -151,20 +150,11 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
 
     new_bdd_creation_time_start = time.perf_counter()
 
-    if input_format in ["bc", "v"]:
-        my_favorite_order = {char: i for i, char in enumerate(var_order)}
-        cudd.reorder(bdd, my_favorite_order)
-        new_bdd_roots = roots
-    else:
-        new_bdd = cudd.BDD()
-        new_bdd.configure(reordering=False)
-        var_names = [f"var_{var}" for var in var_order]
-        new_bdd.declare(*var_names)
-        new_bdd_roots = []
-
-        for formula in formulas:
-            root = new_bdd.add_expr(formula)
-            new_bdd_roots.append(root)
+    if input_format not in ["bc", "v"]:
+        var_order = [f"var_{var}" for var in var_order]
+    my_favorite_order = {char: i for i, char in enumerate(var_order)}
+    cudd.reorder(bdd, my_favorite_order)
+    new_bdd_roots = roots
 
     new_bdd_creation_time = time.perf_counter() - new_bdd_creation_time_start
     new_bdd_satisfying_assignments = count_satisfying_assignments(bdd, new_bdd_roots)
@@ -175,20 +165,12 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
     print("Amount of nodes: ", len(bdd))
     # print("Number of satisfying assignments: " + str(new_bdd_satisfying_assignments))
     assert bdd_satisfying_assignments == new_bdd_satisfying_assignments
-    if input_format in ["bc", "v"]:
-        # We cannot do this assertion as the BDD is optimized,
-        # whereas the BC is not. So it may yield different results
-        pass
-        # assert count_satisfying_assignments(bdd, roots) ==
-        # circuitgraph.sat.model_count(
-        #     formula, assumptions={output: True for output in formula.outputs()}
-        # )
 
     if dump:
         bdd.dump("bdd_output.png", roots=new_bdd_roots, filetype="png")
 
     return {
-        "BDD": {"tree": bdd, "roots": roots},
+        "BDD": {"tree": bdd, "roots": new_bdd_roots},
         "Original BDD creation time": bdd_creation_time,
         "Original BDD size": original_bdd_size,
         "Reordered BDD creation time": new_bdd_creation_time,
