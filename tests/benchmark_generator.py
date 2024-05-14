@@ -1,35 +1,15 @@
 import argparse
 import concurrent.futures
+import gc
 import os
-import signal
 import sys
 
 sys.path.append("..")
 
 import pandas as pd
 
+from helpers.errors import Timeout
 from main import MyCLI
-
-
-class Timeout:
-    """Timeout class using ALARM signal"""
-
-    class Timeout(Exception):
-        pass
-
-    def __init__(self, sec):
-        self.sec = sec
-
-    def __enter__(self):
-        signal.signal(signal.SIGALRM, self.raise_timeout)
-        signal.alarm(self.sec)
-
-    def __exit__(self, *args):
-        signal.alarm(0)  # disable alarm
-
-    def raise_timeout(self, *args):
-        raise Timeout.Timeout()
-
 
 # Define the list of commands to apply to each file, per category
 commands_dict = {
@@ -92,7 +72,8 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
             # Apply the list of commands to the current file
             for command_index, command in enumerate(commands):
                 try:
-                    with Timeout(60):
+                    gc.collect()
+                    with Timeout(300):
                         formatted_command = command.format(file_path)
                         # Execute the command with the file name as an argument
                         result_dict = MyCLI.do_choose(

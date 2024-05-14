@@ -1,8 +1,10 @@
+import gc
 import re
 import time
 
 from dd import cudd
 
+from helpers.errors import Timeout
 from meta.circuit import CustomCircuit
 
 
@@ -16,8 +18,9 @@ def count_satisfying_assignments(bdd, roots):
 
 
 def build_bdd_from_circuit(circuit, var_order):
+    print("build bdd from circuit")
     bdd = cudd.BDD()
-    bdd.configure(reordering=False)
+    bdd.configure(reordering=False, garbage_collection=True, max_memory=1024*1024)
     bdd.declare(*var_order)
     gate_nodes = {}
     roots = []
@@ -130,10 +133,13 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
         bdd.configure(reordering=False)
         bdd.declare(*var_names)
         roots = []
-
         for formula in formulas:
-            root = bdd.add_expr(formula)
-            roots.append(root)
+            try:
+                with Timeout(60):
+                    root = bdd.add_expr(formula)
+                    roots.append(root)
+            except Timeout.Timeout:
+                raise NotImplementedError("Timeout")
 
     bdd_creation_time = time.perf_counter() - bdd_creation_time_start
     bdd_satisfying_assignments = count_satisfying_assignments(bdd, roots)
@@ -153,7 +159,11 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
     if input_format not in ["bc", "v"]:
         var_order = [f"var_{var}" for var in var_order]
     my_favorite_order = {char: i for i, char in enumerate(var_order)}
-    cudd.reorder(bdd, my_favorite_order)
+    try:
+        with Timeout(60):
+            cudd.reorder(bdd, my_favorite_order)
+    except Timeout.Timeout:
+        raise NotImplementedError("Timeout")
     new_bdd_roots = roots
 
     new_bdd_creation_time = time.perf_counter() - new_bdd_creation_time_start
@@ -168,6 +178,8 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
 
     if dump:
         bdd.dump("bdd_output.png", roots=new_bdd_roots, filetype="png")
+
+    gc.collect()
 
     return {
         "BDD": {"tree": bdd, "roots": new_bdd_roots},
