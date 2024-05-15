@@ -20,7 +20,7 @@ def count_satisfying_assignments(bdd, roots):
 def build_bdd_from_circuit(circuit, var_order):
     print("build bdd from circuit")
     bdd = cudd.BDD()
-    bdd.configure(reordering=False, garbage_collection=True, max_memory=1024*1024)
+    bdd.configure(reordering=False, garbage_collection=True, max_memory=1024*1024*1024)
     bdd.declare(*var_order)
     gate_nodes = {}
     roots = []
