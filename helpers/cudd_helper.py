@@ -105,7 +105,7 @@ def build_bdd_from_circuit(circuit, var_order):
     return bdd, roots
 
 
-def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
+def create_bdd(input_format, formula, var_order, dump=False):
     # Create BDD with CuDD
     formulas = []
     bdd_creation_time_start = time.perf_counter()
@@ -150,6 +150,6 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
     gc.collect()
 
     return {
-        "Original BDD creation time": bdd_creation_time,
-        "Original BDD size": len(bdd),
+        "BDD creation time": bdd_creation_time,
+        "BDD size": len(bdd),
     }

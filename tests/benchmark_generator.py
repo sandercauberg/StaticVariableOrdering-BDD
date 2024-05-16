@@ -29,9 +29,13 @@ commands_dict = {
     ],
     "BC": [
         "{}",
+        "{} -heuristic random",
         "{} -heuristic weight",
         "{} -heuristic fanin",
         "{} -heuristic dependent",
+        "{} -transform cnf",
+        "{} -transform cnf -heuristic fanin",
+        # "{} -transform cnf -heuristic mince_manual",
     ],
 }
 
@@ -65,7 +69,6 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
     # Iterate over the files in the folder
     for file_name in sorted(os.listdir(folder_path)):
         file_path = os.path.join(folder_path, file_name)
-        bdd = None
         file_row = [file_name, "", "", "", ""]
         # We do not want to include sub-folders and files, so we check if it is a file
         if os.path.isfile(file_path):
@@ -76,28 +79,14 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
                     with Timeout(300):
                         formatted_command = command.format(file_path)
                         # Execute the command with the file name as an argument
-                        result_dict = MyCLI.do_choose(
-                            my_cli, formatted_command, bdd=bdd
-                        )
-                        bdd = dict(
-                            tree=result_dict["Result"]["BDD Info"]["BDD"]["tree"],
-                            roots=result_dict["Result"]["BDD Info"]["BDD"]["roots"],
-                        )
+                        result_dict = MyCLI.do_choose(my_cli, formatted_command)
                         if (
                             command_index == 0
                         ):  # Only fill in these columns for the first command
                             file_row = [
                                 file_name,
-                                "",
                                 result_dict["Result"]["Parsing Time"],
-                                result_dict["Result"]["BDD Info"][
-                                    "Original BDD creation time"
-                                ],
-                                result_dict["Result"]["BDD Info"]["Original BDD size"],
                             ]
-                            bdd_sizes[(file_name, command)] = result_dict["Result"][
-                                "BDD Info"
-                            ]["Original BDD size"]
 
                         file_row.extend(
                             [
@@ -107,15 +96,13 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
                                 and "transform bc" in formatted_command
                                 else "-",
                                 result_dict["Result"]["Ordering Time"],
-                                result_dict["Result"]["BDD Info"][
-                                    "Reordered BDD creation time"
-                                ],
-                                result_dict["Result"]["BDD Info"]["Reordered BDD size"],
+                                result_dict["Result"]["BDD Info"]["BDD creation time"],
+                                result_dict["Result"]["BDD Info"]["BDD size"],
                             ]
                         )
                         bdd_sizes[(file_name, command)] = result_dict["Result"][
                             "BDD Info"
-                        ]["Reordered BDD size"]
+                        ]["BDD size"]
                 except Timeout.Timeout:
                     file_row.extend([command, "Time exceeded", "", "", ""])
                 except MemoryError as mem_error:
@@ -131,10 +118,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
 # Define the column names for the DataFrame
 columns = [
     "File",
-    "",
     "Parsing Time",
-    "Original BDD Creation Time",
-    "Original BDD Size",
 ]
 
 # Add columns for each command result
@@ -144,8 +128,8 @@ for command_index in range(len(commands)):
             f"Command {command_index+1}",
             f"Factor out {command_index+1}",
             f"Ordering Time {command_index+1}",
-            f"Reordered BDD creation time {command_index+1}",
-            f"Reordered BDD size {command_index+1}",
+            f"BDD creation time {command_index+1}",
+            f"BDD size {command_index+1}",
         ]
     )
 
