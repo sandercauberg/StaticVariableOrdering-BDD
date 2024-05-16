@@ -1,10 +1,12 @@
 heuristics_boolean_circuits = {
+    "random": "heuristics.random",
     "fanin": "heuristics.bc_fanin",
     "weight": "heuristics.bc_weight_heuristics",
     "dependent": "heuristics.bc_dependent_count",
 }
 
 heuristics_cnf = {
+    "random": "heuristics.random",
     "fanin": "heuristics.fanin",
     "mince": "heuristics.mince",
     "mince_manual": "heuristics.mince_manual",
