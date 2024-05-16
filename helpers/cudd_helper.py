@@ -18,7 +18,6 @@ def count_satisfying_assignments(bdd, roots):
 
 
 def build_bdd_from_circuit(circuit, var_order):
-    print("build bdd from circuit")
     bdd = cudd.BDD()
     bdd.configure(
         reordering=False, garbage_collection=True, max_memory=2 * 1024 * 1024 * 1024
@@ -45,9 +44,6 @@ def build_bdd_from_circuit(circuit, var_order):
         else:
             node = args[0]
         return node
-
-    # Process input nodes first
-    # [bdd.add_var(node) for node in var_order]
 
     # Traverse the Boolean circuit level by level
     max_depth = max(circuit.fanout_depth(node) for node in circuit.inputs())
@@ -113,21 +109,17 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
     # Create BDD with CuDD
     formulas = []
     bdd_creation_time_start = time.perf_counter()
-    if input_format in ["bc", "v"] and bdd is None:
-        original_order = CustomCircuit.get_ordered_inputs(formula)
-        bdd, roots = build_bdd_from_circuit(formula, original_order)
-    elif bdd is not None:
-        bdd, roots = bdd.get("tree"), bdd.get("roots")
+    if input_format in ["bc", "v"]:
+        bdd, roots = build_bdd_from_circuit(formula, var_order)
     else:
-        variables = formula.extract_variables()
-        var_names = [f"var_{var}" for var in variables]
+        var_names = [f"var_{var}" for var in var_order]
         formula = (
             str(formula)
             .replace("∨", r" \/ ")
             .replace("∧", r" /\ ")
             .replace("¬", "!")[1:-1]
         )
-        for var in variables:
+        for var in var_order:
             formula = re.sub(r"\b" + re.escape(str(var)) + r"\b", f"var_{var}", formula)
         formulas.append(formula)
 
@@ -144,49 +136,20 @@ def create_bdd(input_format, formula, var_order, bdd={}, dump=False):
                 raise NotImplementedError("Timeout")
 
     bdd_creation_time = time.perf_counter() - bdd_creation_time_start
-    bdd_satisfying_assignments = count_satisfying_assignments(bdd, roots)
+    # bdd_satisfying_assignments = count_satisfying_assignments(bdd, roots)
 
     # Print BDD before reordering
-    print("BDD Before Reordering:")
+    print("BDD Statistics:")
     print(bdd)
     print("Amount of nodes: ", len(bdd))
-    original_bdd_size = len(bdd)
     # print("Number of satisfying assignments: " + str(bdd_satisfying_assignments))
 
     if dump:
         bdd.dump("bdd.png", roots=roots, filetype="png")
 
-    new_bdd_creation_time_start = time.perf_counter()
-
-    if input_format not in ["bc", "v"]:
-        var_order = [f"var_{var}" for var in var_order]
-    my_favorite_order = {char: i for i, char in enumerate(var_order)}
-    try:
-        with Timeout(60):
-            cudd.reorder(bdd, my_favorite_order)
-    except Timeout.Timeout:
-        raise NotImplementedError("Timeout")
-    new_bdd_roots = roots
-
-    new_bdd_creation_time = time.perf_counter() - new_bdd_creation_time_start
-    new_bdd_satisfying_assignments = count_satisfying_assignments(bdd, new_bdd_roots)
-
-    # Print BDD after reordering
-    print("BDD After Reordering:")
-    print(bdd)
-    print("Amount of nodes: ", len(bdd))
-    # print("Number of satisfying assignments: " + str(new_bdd_satisfying_assignments))
-    assert bdd_satisfying_assignments == new_bdd_satisfying_assignments
-
-    if dump:
-        bdd.dump("bdd_output.png", roots=new_bdd_roots, filetype="png")
-
     gc.collect()
 
     return {
-        "BDD": {"tree": bdd, "roots": new_bdd_roots},
         "Original BDD creation time": bdd_creation_time,
-        "Original BDD size": original_bdd_size,
-        "Reordered BDD creation time": new_bdd_creation_time,
-        "Reordered BDD size": len(bdd),
+        "Original BDD size": len(bdd),
     }
