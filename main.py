@@ -94,8 +94,8 @@ class MyCLI(cmd.Cmd):
         if heuristic_type in heuristic_options:
             module_path = heuristic_options[heuristic_type]
         elif heuristic_type is None:
-            print("No heuristic chosen, using random heuristics.")
-            module_path = "heuristics.random"
+            print("No heuristic chosen, using the order of the input file.")
+            module_path = "heuristics.input_file"
         else:
             print(
                 f"Heuristic '{heuristic_type}' is not available for "
