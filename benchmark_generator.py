@@ -2,9 +2,6 @@ import argparse
 import concurrent.futures
 import gc
 import os
-import sys
-
-sys.path.append("..")
 
 import pandas as pd
 
@@ -15,7 +12,7 @@ from main import MyCLI
 commands_dict = {
     "CNF": [
         "{}",
-        "{} -heuristic fanin",
+        "{} -heuristic dependencies",
         # "{} -heuristic mince_manual",
         # "{} -heuristic mince",
         "{} -transform bc",
@@ -57,7 +54,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-folder_path = os.path.abspath("../input_files/" + args.folder)
+folder_path = os.path.abspath("input_files/" + args.folder)
 chosen_input = args.category
 my_cli = MyCLI()
 

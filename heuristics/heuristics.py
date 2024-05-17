@@ -7,7 +7,7 @@ heuristics_boolean_circuits = {
 
 heuristics_cnf = {
     "random": "heuristics.random",
-    "fanin": "heuristics.fanin",
+    "dependencies": "heuristics.cnf_dependencies",
     "mince": "heuristics.mince",
     "mince_manual": "heuristics.mince_manual",
 }

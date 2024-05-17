@@ -21,4 +21,4 @@ run:
 	python main.py
 
 benchmark:
-	cd tests && python benchmark_generator.py $(ARGS)
+	python benchmark_generator.py $(ARGS)
