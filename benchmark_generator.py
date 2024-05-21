@@ -74,6 +74,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
                 try:
                     gc.collect()
                     with Timeout(300):
+                        print(command)
                         formatted_command = command.format(file_path)
                         # Execute the command with the file name as an argument
                         result_dict = MyCLI.do_choose(my_cli, formatted_command)
@@ -92,9 +93,9 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
                                 if chosen_input == "CNF"
                                 and "transform bc" in formatted_command
                                 else "-",
-                                result_dict["Result"]["Ordering Time"],
-                                result_dict["Result"]["BDD Info"]["BDD creation time"],
-                                result_dict["Result"]["BDD Info"]["BDD size"],
+                                result_dict["Result"]["Ordering Time"] or "",
+                                result_dict["Result"]["BDD Info"]["BDD creation time"] or "",
+                                result_dict["Result"]["BDD Info"]["BDD size"] or "",
                             ]
                         )
                         bdd_sizes[(file_name, command)] = result_dict["Result"][
@@ -115,7 +116,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
 # Define the column names for the DataFrame
 columns = [
     "File",
-    "Parsing Time",
+    "Parsing Time","","",""
 ]
 
 # Add columns for each command result

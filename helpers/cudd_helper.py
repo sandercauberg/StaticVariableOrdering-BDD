@@ -18,9 +18,10 @@ def count_satisfying_assignments(bdd, roots):
 
 
 def build_bdd_from_circuit(circuit, var_order):
+    print('build bdd')
     bdd = cudd.BDD()
     bdd.configure(
-        reordering=False, garbage_collection=True, max_memory=2 * 1024 * 1024 * 1024
+        reordering=False, garbage_collection=True, max_memory=1024**3,
     )
     bdd.declare(*var_order)
     gate_nodes = {}
@@ -93,6 +94,7 @@ def build_bdd_from_circuit(circuit, var_order):
                             bdd_node = bdd.apply(op, bdd_node, Function_u)
                             if Function_v:
                                 bdd_node = bdd.apply(op, bdd_node, Function_v)
+                        print('bdd size:', len(bdd))
 
                     if node_instance["output"] is True:
                         roots.append(bdd_node)
@@ -124,13 +126,15 @@ def create_bdd(input_format, formula, var_order, dump=False):
         formulas.append(formula)
 
         bdd = cudd.BDD()
-        bdd.configure(reordering=False)
+        bdd.configure(reordering=False, garbage_collection=True, max_memory=4*1024**3)
         bdd.declare(*var_names)
         roots = []
         for formula in formulas:
             try:
-                with Timeout(60):
+                with Timeout(60*10):
+                    print("adding expression")
                     root = bdd.add_expr(formula)
+                    print('added')
                     roots.append(root)
             except Timeout.Timeout:
                 raise NotImplementedError("Timeout")
@@ -142,6 +146,7 @@ def create_bdd(input_format, formula, var_order, dump=False):
     print("BDD Statistics:")
     print(bdd)
     print("Amount of nodes: ", len(bdd))
+    print('creation time:', bdd_creation_time)
     # print("Number of satisfying assignments: " + str(bdd_satisfying_assignments))
 
     if dump:
