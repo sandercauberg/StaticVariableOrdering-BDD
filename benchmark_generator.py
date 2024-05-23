@@ -94,7 +94,8 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
                                 and "transform bc" in formatted_command
                                 else "-",
                                 result_dict["Result"]["Ordering Time"] or "",
-                                result_dict["Result"]["BDD Info"]["BDD creation time"] or "",
+                                result_dict["Result"]["BDD Info"]["BDD creation time"]
+                                or "",
                                 result_dict["Result"]["BDD Info"]["BDD size"] or "",
                             ]
                         )
@@ -114,10 +115,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
             rows.append(file_row)
 
 # Define the column names for the DataFrame
-columns = [
-    "File",
-    "Parsing Time","","",""
-]
+columns = ["File", "Parsing Time", "", "", ""]
 
 # Add columns for each command result
 for command_index in range(len(commands)):

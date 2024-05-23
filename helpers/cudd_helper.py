@@ -1,11 +1,10 @@
 import gc
-import re
 import time
 
 from dd import cudd
 
-from helpers.errors import Timeout
 from meta.circuit import CustomCircuit
+from meta.formula import Not
 
 
 def count_satisfying_assignments(bdd, roots):
@@ -18,10 +17,11 @@ def count_satisfying_assignments(bdd, roots):
 
 
 def build_bdd_from_circuit(circuit, var_order):
-    print('build bdd')
-    bdd = cudd.BDD()
+    bdd = cudd.BDD(memory_estimate=1024**3)
     bdd.configure(
-        reordering=False, garbage_collection=True, max_memory=1024**3,
+        reordering=False,
+        garbage_collection=True,
+        max_memory=1024**3,
     )
     bdd.declare(*var_order)
     gate_nodes = {}
@@ -94,7 +94,6 @@ def build_bdd_from_circuit(circuit, var_order):
                             bdd_node = bdd.apply(op, bdd_node, Function_u)
                             if Function_v:
                                 bdd_node = bdd.apply(op, bdd_node, Function_v)
-                        print('bdd size:', len(bdd))
 
                     if node_instance["output"] is True:
                         roots.append(bdd_node)
@@ -107,37 +106,68 @@ def build_bdd_from_circuit(circuit, var_order):
     return bdd, roots
 
 
+def build_bdd_from_cnf_formula(formula, var_order):
+    bdd = cudd.BDD(memory_estimate=1024**3)
+    bdd.configure(
+        reordering=False,
+        garbage_collection=True,
+        max_memory=1024**3,
+    )
+    bdd.declare(*var_order)
+
+    def handle_clause(clause):
+        clause_node = None
+        args = clause.ordered_children
+        while len(args) > 0:
+            if len(args) >= 2:
+                Function_u = args[0]
+                if isinstance(Function_u, Not):
+                    Function_u = bdd.apply("not", bdd.var(Function_u.child))
+                else:
+                    Function_u = bdd.var(Function_u)
+                Function_v = args[1]
+                if isinstance(Function_v, Not):
+                    Function_v = bdd.apply("not", bdd.var(Function_v.child))
+                else:
+                    Function_v = bdd.var(Function_v)
+
+                clause_node = bdd.apply("or", Function_u, Function_v)
+                args = args[2:]
+            elif len(args) == 1:
+                Function_u = args[0]
+                if isinstance(Function_u, Not):
+                    Function_u = bdd.apply("not", bdd.var(Function_u.child))
+                else:
+                    Function_u = bdd.var(Function_u)
+
+                if clause_node:
+                    clause_node = bdd.apply("or", clause_node, Function_u)
+                else:
+                    clause_node = Function_u
+                args = []
+            else:
+                args = []
+        return clause_node
+
+    first_node = handle_clause(formula.ordered_children[0])
+    node = None
+    for child in formula.ordered_children[1:]:
+        if first_node:
+            node = bdd.apply("and", first_node, handle_clause(child))
+            first_node = None
+        else:
+            node = bdd.apply("and", node, handle_clause(child))
+    roots = [node]
+    return bdd, roots
+
+
 def create_bdd(input_format, formula, var_order, dump=False):
     # Create BDD with CuDD
-    formulas = []
     bdd_creation_time_start = time.perf_counter()
     if input_format in ["bc", "v"]:
         bdd, roots = build_bdd_from_circuit(formula, var_order)
     else:
-        var_names = [f"var_{var}" for var in var_order]
-        formula = (
-            str(formula)
-            .replace("∨", r" \/ ")
-            .replace("∧", r" /\ ")
-            .replace("¬", "!")[1:-1]
-        )
-        for var in var_order:
-            formula = re.sub(r"\b" + re.escape(str(var)) + r"\b", f"var_{var}", formula)
-        formulas.append(formula)
-
-        bdd = cudd.BDD()
-        bdd.configure(reordering=False, garbage_collection=True, max_memory=4*1024**3)
-        bdd.declare(*var_names)
-        roots = []
-        for formula in formulas:
-            try:
-                with Timeout(60*10):
-                    print("adding expression")
-                    root = bdd.add_expr(formula)
-                    print('added')
-                    roots.append(root)
-            except Timeout.Timeout:
-                raise NotImplementedError("Timeout")
+        bdd, roots = build_bdd_from_cnf_formula(formula, var_order)
 
     bdd_creation_time = time.perf_counter() - bdd_creation_time_start
     # bdd_satisfying_assignments = count_satisfying_assignments(bdd, roots)
@@ -146,7 +176,7 @@ def create_bdd(input_format, formula, var_order, dump=False):
     print("BDD Statistics:")
     print(bdd)
     print("Amount of nodes: ", len(bdd))
-    print('creation time:', bdd_creation_time)
+    print("creation time:", bdd_creation_time)
     # print("Number of satisfying assignments: " + str(bdd_satisfying_assignments))
 
     if dump:
