@@ -131,7 +131,11 @@ def build_bdd_from_cnf_formula(formula, var_order):
                 else:
                     Function_v = bdd.var(Function_v)
 
-                clause_node = bdd.apply("or", Function_u, Function_v)
+                if clause_node is None:
+                    clause_node = bdd.apply("or", Function_u, Function_v)
+                else:
+                    clause_node = bdd.apply("or", clause_node, Function_u)
+                    clause_node = bdd.apply("or", clause_node, Function_v)
                 args = args[2:]
             elif len(args) == 1:
                 Function_u = args[0]
