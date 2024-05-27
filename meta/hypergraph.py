@@ -10,7 +10,6 @@
 # copies of the Software, and to permit persons to whom the
 # Software is furnished to do so, subject to the following
 # conditions:
-import mtkahypar
 
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
@@ -209,6 +208,7 @@ class Hypergraph:
         return self.nodes_mapping
 
     def to_kahypar(self):
+        import mtkahypar
         """
         Convert the hypergraph into a format compatible with mtkahypar.
 

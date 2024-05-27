@@ -13,7 +13,7 @@ commands_dict = {
     "CNF": [
         "{}",
         "{} -heuristic dependencies",
-        # "{} -heuristic mince_manual",
+        "{} -heuristic mince_manual",
         # "{} -heuristic mince",
         "{} -transform bc",
         "{} -transform bc -factor_out dependencies",
@@ -43,7 +43,7 @@ parser.add_argument(
     "-j", "--jobs", type=int, default=2, help="Number of concurrent jobs"
 )
 parser.add_argument(
-    "-f", "--folder", default="benchmark_test", help="Folder containing the files"
+    "-f", "--folder", default="benchmark_test_bc", help="Folder containing the files"
 )
 parser.add_argument(
     "-c",
@@ -115,7 +115,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
             rows.append(file_row)
 
 # Define the column names for the DataFrame
-columns = ["File", "Parsing Time", "", "", ""]
+columns = ["File", "Parsing Time"]
 
 # Add columns for each command result
 for command_index in range(len(commands)):
