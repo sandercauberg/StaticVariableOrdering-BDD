@@ -10,6 +10,7 @@ heuristics_cnf = {
     "dependencies": "heuristics.cnf_dependencies",
     "mince": "heuristics.mince",
     "mince_manual": "heuristics.mince_manual",
+    "force": "heuristics.force",
 }
 
 heuristics_sat = {"fanin": "heuristics.fanin"}
