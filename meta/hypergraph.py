@@ -209,6 +209,7 @@ class Hypergraph:
 
     def to_kahypar(self):
         import mtkahypar
+
         """
         Convert the hypergraph into a format compatible with mtkahypar.
 

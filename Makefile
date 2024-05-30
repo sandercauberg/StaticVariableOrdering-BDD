@@ -12,7 +12,7 @@ format:
 	isort . --profile=black
 
 lint:
-	flake8 --exclude=./venv/,./dd-*/,/mt-kahypar/ --max-line-length 88 --ignore=E203,E402,W503
+	flake8 --exclude=./venv/,./dd-*/,./mt-kahypar/ --max-line-length 88 --ignore=E203,E402,W503
 
 test:
 	pytest ./tests/

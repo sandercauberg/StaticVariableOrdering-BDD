@@ -107,11 +107,11 @@ def build_bdd_from_circuit(circuit, var_order):
 
 
 def build_bdd_from_cnf_formula(formula, var_order):
-    bdd = cudd.BDD(memory_estimate=1024**3)
+    bdd = cudd.BDD(memory_estimate=2 * 1024**3)
     bdd.configure(
         reordering=False,
         garbage_collection=True,
-        max_memory=1024**3,
+        max_memory=2 * 1024**3,
     )
     bdd.declare(*var_order)
 
