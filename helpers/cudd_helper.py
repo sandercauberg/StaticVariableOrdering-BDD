@@ -8,7 +8,7 @@ from meta.formula import Not
 
 
 def count_satisfying_assignments(bdd, roots):
-    conjunction = bdd.true
+    conjunction = bdd.false
     for root in roots:
         conjunction = bdd.apply("or", conjunction, root)
     # for assignment in bdd.pick_iter(conjunction):
