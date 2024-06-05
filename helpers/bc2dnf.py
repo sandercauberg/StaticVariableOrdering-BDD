@@ -6,9 +6,10 @@ import circuitgraph as cg
 
 from helpers.cudd_helper import build_bdd_from_circuit
 from meta.circuit import CustomCircuit
+from meta.formula import And, Not, Or, Variable
 
 
-def bc2cnf(circuit):
+def bc2dnf(circuit):
     var_order = CustomCircuit.get_ordered_inputs(circuit)
     bdd, roots = build_bdd_from_circuit(circuit, var_order)
 
@@ -32,21 +33,17 @@ def bc2cnf(circuit):
 
     traverse(conjunction, {})
 
+    dnf_clauses = []
     for assignment in minimal_assignments:
-        print("Minimal Satisfying Assignment:", dict(assignment))
+        print("Minimal Satisfying Assignment:", dict(assignment), assignment)
+        clause = And(
+            *[
+                Variable(item) if value else Not(Variable(item))
+                for item, value in assignment
+            ]
+        )
+        dnf_clauses.append(clause)
 
-    cnf_formula, variables = cg.sat.cnf(circuit)
-    cnf_formula_str = str(cnf_formula).split("from_string='")[1].split("')")[0]
-    cnf_formula_str = cnf_formula_str.replace("\\n", "\n")
+    dnf_formula = Or(*dnf_clauses)
 
-    with tempfile.NamedTemporaryFile(mode="w+", delete=False) as temp_file:
-        temp_file.write(cnf_formula_str)
-        temp_file_path = temp_file.name
-    try:
-        input_format, formula = parser.load(temp_file_path)
-    finally:
-        # Clean up the temporary file
-        if temp_file_path:
-            os.remove(temp_file_path)
-
-    return formula
+    return dnf_formula

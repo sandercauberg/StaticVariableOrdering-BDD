@@ -24,6 +24,16 @@ class Formula:
             )
         )
 
+    def is_dnf(self):
+        return (
+            isinstance(self, Or)
+            and all(isinstance(child, And) for child in self.children)
+            and all(
+                (isinstance(var, Variable) for var in child.children)
+                for child in self.children
+            )
+        )
+
     def extract_variables(self):
         variables = set()
         if isinstance(self, Variable):
