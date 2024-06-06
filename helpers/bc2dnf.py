@@ -1,9 +1,3 @@
-import os
-import parser
-import tempfile
-
-import circuitgraph as cg
-
 from helpers.cudd_helper import build_bdd_from_circuit
 from meta.circuit import CustomCircuit
 from meta.formula import And, Not, Or, Variable
@@ -35,7 +29,6 @@ def bc2dnf(circuit):
 
     dnf_clauses = []
     for assignment in minimal_assignments:
-        print("Minimal Satisfying Assignment:", dict(assignment), assignment)
         clause = And(
             *[
                 Variable(item) if value else Not(Variable(item))
