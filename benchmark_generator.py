@@ -30,9 +30,11 @@ commands_dict = {
         "{} -heuristic weight",
         "{} -heuristic fanin",
         "{} -heuristic dependent",
-        "{} -transform cnf",
-        "{} -transform cnf -heuristic fanin",
-        # "{} -transform cnf -heuristic mince_manual",
+        "{} -transform dnf",
+        "{} -transform dnf -heuristic dependencies",
+        "{} -transform dnf -heuristic mince_manual",
+        # "{} -transform dnf -heuristic mince",
+        "{} -transform dnf -heuristic force",
     ],
 }
 

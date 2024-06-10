@@ -21,12 +21,12 @@ def compute_sum_of_spans(graph, idx_of_var):
 
 
 def calculate(formula):
-    if isinstance(formula, Formula) and formula.is_cnf():
+    if isinstance(formula, Formula) and (formula.is_cnf() or formula.is_dnf()):
         hypergraph = cnf2hypergraph(formula)
     elif isinstance(formula, Hypergraph):
         hypergraph = formula
     else:
-        raise ParserWarning("Unknown formula input for MINCE algorithm.")
+        raise ParserWarning("Unknown formula input for FORCE algorithm.")
 
     result = execute_with_order(hypergraph, hypergraph.nodes())
     result_string = " < ".join(map(lambda x: str(x), result))

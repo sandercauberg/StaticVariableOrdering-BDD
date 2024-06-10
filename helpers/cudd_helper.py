@@ -106,7 +106,11 @@ def build_bdd_from_circuit(circuit, var_order):
     return bdd, roots
 
 
-def build_bdd_from_cnf_formula(formula, var_order):
+def build_bdd_from_formula(formula, var_order):
+    formula_type = "CNF"
+    if formula.is_dnf():
+        formula_type = "DNF"
+
     bdd = cudd.BDD(memory_estimate=2 * 1024**3)
     bdd.configure(
         reordering=False,
@@ -132,10 +136,20 @@ def build_bdd_from_cnf_formula(formula, var_order):
                     Function_v = bdd.var(Function_v)
 
                 if clause_node is None:
-                    clause_node = bdd.apply("or", Function_u, Function_v)
+                    clause_node = bdd.apply(
+                        "or" if formula_type == "CNF" else "and", Function_u, Function_v
+                    )
                 else:
-                    clause_node = bdd.apply("or", clause_node, Function_u)
-                    clause_node = bdd.apply("or", clause_node, Function_v)
+                    clause_node = bdd.apply(
+                        "or" if formula_type == "CNF" else "and",
+                        clause_node,
+                        Function_u,
+                    )
+                    clause_node = bdd.apply(
+                        "or" if formula_type == "CNF" else "and",
+                        clause_node,
+                        Function_v,
+                    )
                 args = args[2:]
             elif len(args) == 1:
                 Function_u = args[0]
@@ -145,7 +159,11 @@ def build_bdd_from_cnf_formula(formula, var_order):
                     Function_u = bdd.var(Function_u)
 
                 if clause_node:
-                    clause_node = bdd.apply("or", clause_node, Function_u)
+                    clause_node = bdd.apply(
+                        "or" if formula_type == "CNF" else "and",
+                        clause_node,
+                        Function_u,
+                    )
                 else:
                     clause_node = Function_u
                 args = []
@@ -154,13 +172,11 @@ def build_bdd_from_cnf_formula(formula, var_order):
         return clause_node
 
     first_node = handle_clause(formula.ordered_children[0])
-    node = None
+    node = first_node
     for child in formula.ordered_children[1:]:
-        if first_node:
-            node = bdd.apply("and", first_node, handle_clause(child))
-            first_node = None
-        else:
-            node = bdd.apply("and", node, handle_clause(child))
+        clause_node = handle_clause(child)
+        node = bdd.apply("and" if formula_type == "CNF" else "or", node, clause_node)
+
     roots = [node]
     return bdd, roots
 
@@ -171,7 +187,7 @@ def create_bdd(input_format, formula, var_order, dump=False):
     if input_format in ["bc", "v"]:
         bdd, roots = build_bdd_from_circuit(formula, var_order)
     else:
-        bdd, roots = build_bdd_from_cnf_formula(formula, var_order)
+        bdd, roots = build_bdd_from_formula(formula, var_order)
 
     bdd_creation_time = time.perf_counter() - bdd_creation_time_start
     # bdd_satisfying_assignments = count_satisfying_assignments(bdd, roots)
