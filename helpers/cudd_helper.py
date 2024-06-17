@@ -103,6 +103,7 @@ def build_bdd_from_circuit(circuit, var_order):
 
                 gate_nodes[node] = bdd_node
 
+    print("built bdd,", len(bdd))
     return bdd, roots
 
 
@@ -171,8 +172,7 @@ def build_bdd_from_formula(formula, var_order):
                 args = []
         return clause_node
 
-    first_node = handle_clause(formula.ordered_children[0])
-    node = first_node
+    node = handle_clause(formula.ordered_children[0])
     for child in formula.ordered_children[1:]:
         clause_node = handle_clause(child)
         node = bdd.apply("and" if formula_type == "CNF" else "or", node, clause_node)

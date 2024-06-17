@@ -13,16 +13,21 @@ def bc2dnf(circuit):
 
     minimal_assignments = list()
 
-    def traverse(node, path):
+    def traverse(node, path, negated=0):
         if node == bdd.true:
-            assignment = [(var.var, value) for var, value in path.items()]
-            minimal_assignments.append(assignment)
+            if negated % 2 == 0:
+                assignment = [(var.var, value) for var, value in path.items()]
+                minimal_assignments.append(assignment)
+        elif node == bdd.false:
+            if negated % 2 == 1:
+                assignment = [(var.var, value) for var, value in path.items()]
+                minimal_assignments.append(assignment)
         elif node != bdd.false:
             var = bdd.var(node.var)
             path[var] = True
-            traverse(node.high, path)
+            traverse(node.high, path, (negated + 1 if node.negated else negated))
             path[var] = False
-            traverse(node.low, path)
+            traverse(node.low, path, (negated + 1 if node.negated else negated))
             del path[var]
 
     traverse(conjunction, {})
