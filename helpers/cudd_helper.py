@@ -103,8 +103,11 @@ def build_bdd_from_circuit(circuit, var_order):
 
                 gate_nodes[node] = bdd_node
 
-    print("built bdd,", len(bdd))
-    return bdd, roots
+    conjunction = bdd.false
+    for root in roots:
+        conjunction = bdd.apply("or", conjunction, root)
+
+    return bdd, [conjunction]
 
 
 def build_bdd_from_formula(formula, var_order):

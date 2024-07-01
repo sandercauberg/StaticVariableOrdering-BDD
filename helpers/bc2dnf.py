@@ -11,37 +11,35 @@ def bc2dnf(circuit):
     for root in roots:
         conjunction = bdd.apply("or", conjunction, root)
 
-    minimal_assignments = list()
-
-    def traverse(node, path, negated=0):
-        if node == bdd.true:
-            if negated % 2 == 0:
-                assignment = [(var.var, value) for var, value in path.items()]
-                minimal_assignments.append(assignment)
-        elif node == bdd.false:
-            if negated % 2 == 1:
-                assignment = [(var.var, value) for var, value in path.items()]
-                minimal_assignments.append(assignment)
-        elif node != bdd.false:
-            var = bdd.var(node.var)
-            path[var] = True
-            traverse(node.high, path, (negated + 1 if node.negated else negated))
-            path[var] = False
-            traverse(node.low, path, (negated + 1 if node.negated else negated))
-            del path[var]
-
-    traverse(conjunction, {})
-
     dnf_clauses = []
-    for assignment in minimal_assignments:
-        clause = And(
-            *[
-                Variable(item) if value else Not(Variable(item))
-                for item, value in assignment
-            ]
-        )
-        dnf_clauses.append(clause)
 
+    def traverse(root):
+        stack = [(root, {})]
+
+        while stack:
+            node, path = stack.pop()
+
+            if node == bdd.true:
+                # Create a clause for the DNF from the current path
+                clause = [
+                    Variable(var) if value else Not(Variable(var))
+                    for var, value in path.items()
+                ]
+                dnf_clauses.append(And(*clause))
+            elif node != bdd.false:
+                var_name = node.var
+
+                # Traverse high branch (variable is True)
+                path[var_name] = True
+                high_node = bdd.let({var_name: True}, node)
+                stack.append((high_node, path.copy()))
+
+                # Traverse low branch (variable is False)
+                path[var_name] = False
+                low_node = bdd.let({var_name: False}, node)
+                stack.append((low_node, path.copy()))
+
+    traverse(conjunction)
     dnf_formula = Or(*dnf_clauses)
 
     return dnf_formula
