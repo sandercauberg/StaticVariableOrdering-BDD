@@ -7,39 +7,48 @@ def bc2dnf(circuit):
     var_order = CustomCircuit.get_ordered_inputs(circuit)
     bdd, roots = build_bdd_from_circuit(circuit, var_order)
 
-    conjunction = bdd.false
-    for root in roots:
-        conjunction = bdd.apply("or", conjunction, root)
+    def traverse(node, path, memo):
+        if node in memo:
+            return memo[node]
 
-    dnf_clauses = []
+        if node == bdd.true:
+            # Create a clause for the DNF from the current path
+            clause = [
+                Variable(var) if value else Not(Variable(var))
+                for var, value in path.items()
+            ]
+            memo[node] = [And(*clause)]
+            return memo[node]
+        elif node == bdd.false:
+            memo[node] = []
+            return []
 
-    def traverse(root):
-        stack = [(root, {})]
+        var_name = node.var
 
-        while stack:
-            node, path = stack.pop()
+        # Traverse high branch (variable is True)
+        path[var_name] = True
+        high_node = bdd.let({var_name: True}, node)
+        high_clauses = traverse(high_node, path.copy(), memo)
 
-            if node == bdd.true:
-                # Create a clause for the DNF from the current path
-                clause = [
-                    Variable(var) if value else Not(Variable(var))
-                    for var, value in path.items()
-                ]
-                dnf_clauses.append(And(*clause))
-            elif node != bdd.false:
-                var_name = node.var
+        # Traverse low branch (variable is False)
+        path[var_name] = False
+        low_node = bdd.let({var_name: False}, node)
+        low_clauses = traverse(low_node, path.copy(), memo)
 
-                # Traverse high branch (variable is True)
-                path[var_name] = True
-                high_node = bdd.let({var_name: True}, node)
-                stack.append((high_node, path.copy()))
+        memo[node] = high_clauses + low_clauses
+        return memo[node]
 
-                # Traverse low branch (variable is False)
-                path[var_name] = False
-                low_node = bdd.let({var_name: False}, node)
-                stack.append((low_node, path.copy()))
+    dnf_formulas = []
+    print("Starting DNF conversion for roots")
+    print(f"Number of roots: {len(roots)}")
 
-    traverse(conjunction)
-    dnf_formula = Or(*dnf_clauses)
+    for i, root in enumerate(roots):
+        print(f"Processing root {i+1}/{len(roots)}")
+        subformula_clauses = traverse(root, {}, {})
+        print(f"Number of clauses for root {i+1}: {len(subformula_clauses)}")
+        dnf_formula = Or(*subformula_clauses)
+        dnf_formulas.append(dnf_formula)
+        print(f"Total number of DNF formulas so far: {len(dnf_formulas)}")
 
-    return dnf_formula
+    print("DNF conversion completed")
+    return circuit, dnf_formulas

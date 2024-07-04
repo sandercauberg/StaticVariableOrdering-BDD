@@ -41,3 +41,13 @@ Finally run the application:
 ```bash
 make run
 ```
+
+### Run the benchmark generator
+Run the benchmark generator:
+```bash
+make benchmark ARGS="-f folder -j jobs -c category" 
+```
+With:
+- **folder** the folder to run inside /input_files
+- **jobs** the numer of concurrent jobs, with 2 as default
+- **category** whether to run the BC or CNF heuristics, with BC as default.
