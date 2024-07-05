@@ -21,7 +21,7 @@ def test_extract_literals_and_occurrences():
     cnf_formula = create_cnf_formula(clauses)
     literals = cnf_formula.extract_variables()
 
-    assert literals == {a, b, c, d, e}  # A set is unordered
+    assert literals == [a, c, e, b, d]
 
     dependencies = cnf2bc.extract_literals_on_occurrences(cnf_formula, literals)
 
@@ -37,7 +37,7 @@ def test_extract_literals_and_dependencies():
     cnf_formula = create_cnf_formula(clauses)
     literals = cnf_formula.extract_variables()
 
-    assert literals == {a, b, c, d, e}  # A set is unordered
+    assert literals == [a, c, e, b, d]
 
     dependencies = cnf2bc.extract_literals_on_dependencies(cnf_formula, literals)
 

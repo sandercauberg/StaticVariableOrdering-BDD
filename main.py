@@ -9,6 +9,7 @@ from helpers.bc2dnf import bc2dnf
 from helpers.cnf2bc import cnf2bc
 from helpers.cudd_helper import create_bdd
 from heuristics import heuristics
+from meta.formula import Or
 
 
 class MyCLI(cmd.Cmd):
@@ -85,7 +86,8 @@ class MyCLI(cmd.Cmd):
                 print(f"Transformed from {input_format} to {args.transform}")
                 input_format = "bc"
             elif input_format in ["bc", "v"] and args.transform == "dnf":
-                bc_bdd, formula = bc2dnf(formula)
+                bc_circuit, dnf_formulas = bc2dnf(formula)
+                formula = Or(*dnf_formulas)
                 print(f"Transformed from {input_format} to {args.transform}")
                 input_format = "cnf"
 
@@ -117,7 +119,9 @@ class MyCLI(cmd.Cmd):
             + " seconds."
         )
 
-        bdd_info = create_bdd(input_format, formula, var_order, dump=args.dump)
+        bdd_info = create_bdd(
+            input_format, formula, var_order, dump=args.dump, bc_circuit=bc_circuit
+        )
 
         return {
             "File": args.filename,

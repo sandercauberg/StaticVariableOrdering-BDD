@@ -26,7 +26,9 @@ def extract_literals_on_dependencies(formula, literals):
         visited_variables.add(variable)
 
         for child in formula.ordered_children:
-            child_variables = child.extract_variables()
+            child_variables = set(
+                child.extract_variables()
+            )  # Ensure child_variables is a set
             if variable in child_variables:
                 dependencies += len(child_variables - visited_variables)
                 visited_variables.update(child_variables)

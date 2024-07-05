@@ -180,11 +180,13 @@ def build_bdd_from_formula(formula, var_order):
     return bdd, roots
 
 
-def create_bdd(input_format, formula, var_order, dump=False):
+def create_bdd(input_format, formula, var_order, dump=False, bc_circuit=None):
     # Create BDD with CuDD
     bdd_creation_time_start = time.perf_counter()
     if input_format in ["bc", "v"]:
         bdd, roots = build_bdd_from_circuit(formula, var_order)
+    elif bc_circuit:
+        bdd, roots = build_bdd_from_circuit(bc_circuit, var_order)
     else:
         bdd, roots = build_bdd_from_formula(formula, var_order)
 

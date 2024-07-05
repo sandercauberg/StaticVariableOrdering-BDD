@@ -38,7 +38,7 @@ def bc2dnf(circuit):
 
     for i, root in enumerate(roots):
         print(f"Processing root {i+1}/{len(roots)}")
-        root_clauses = traverse(root,{})
+        root_clauses = traverse(root, {})
         # print(root_clauses)
         dnf_formula = Or(*root_clauses)  # Create DNF formula for the current root
         dnf_formulas.append(dnf_formula)

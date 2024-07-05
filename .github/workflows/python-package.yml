@@ -29,6 +29,10 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Install cudd
+      run: |
+        chmod +x install_dd_cudd.sh
+        ./install_dd_cudd.sh
 #    - name: Install mt-kahypar
 #      run: |
 #        chmod +x install_mt-kahypar.sh
