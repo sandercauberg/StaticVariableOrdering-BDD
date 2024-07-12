@@ -32,7 +32,7 @@ class MyCLI(cmd.Cmd):
 
     def do_list(self, filename):
         """List files and directories in the current directory."""
-        files_and_dirs = os.listdir(self.current_directory + r"\\input_files")
+        files_and_dirs = os.listdir(self.current_directory + r"/input_files")
         for item in files_and_dirs:
             print(item)
 
@@ -71,6 +71,7 @@ class MyCLI(cmd.Cmd):
         )
 
         heuristic_type = None
+        bc_circuit = None
         if args.heuristic:
             heuristic_type = args.heuristic
 
