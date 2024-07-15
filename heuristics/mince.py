@@ -7,13 +7,17 @@ from meta.formula import Formula
 from meta.hypergraph import Hypergraph
 
 
-def kahypar(hypergraph, nodes_mapping):
+def kahypar(hypergraph, nodes_mapping, method="DETERMINISTIC"):
     if len(hypergraph.nodes()) == 1:  # If the hypergraph is fully vertex-ordered
         return [hypergraph.nodes()[0]]
 
     new_hypergraph, hyperedges = hypergraph.to_kahypar()
     context = mtkahypar.Context()
-    context.loadPreset(mtkahypar.PresetType.DETERMINISTIC)
+    preset_map = {
+        "DETERMINISTIC": mtkahypar.PresetType.DETERMINISTIC,
+        "DEFAULT": mtkahypar.PresetType.DEFAULT,
+    }
+    context.loadPreset(preset_map[method])
     # In the following, we partition a hypergraph into two blocks
     # with an allowed imbalance of 3% and optimize the connectivity metric
     context.setPartitioningParameters(
@@ -84,13 +88,13 @@ def kahypar(hypergraph, nodes_mapping):
     hypergraph2.add_nodes(hypergraph2_nodes)
     hypergraph2.add_hyperedges(hypergraph2_edges)
 
-    subproblem_ordering_1 = kahypar(hypergraph1, nodes_mapping)
+    subproblem_ordering_1 = kahypar(hypergraph1, nodes_mapping, method)
     hypergraph1_mapping_reversed = {v: k for k, v in hypergraph1_mapping.items()}
     subproblem_ordering_1 = [
         nodes_mapping[hypergraph1_mapping_reversed[node]]
         for node in subproblem_ordering_1
     ]
-    subproblem_ordering_2 = kahypar(hypergraph2, nodes_mapping)
+    subproblem_ordering_2 = kahypar(hypergraph2, nodes_mapping, method)
     hypergraph2_mapping_reversed = {v: k for k, v in hypergraph2_mapping.items()}
     subproblem_ordering_2 = [
         nodes_mapping[hypergraph2_mapping_reversed[node]]
@@ -100,7 +104,7 @@ def kahypar(hypergraph, nodes_mapping):
     return subproblem_ordering_1 + subproblem_ordering_2
 
 
-def calculate(formula):
+def calculate(formula, method="DETERMINISTIC"):
     if isinstance(formula, Formula) and (formula.is_cnf() or formula.is_dnf()):
         hypergraph = cnf2hypergraph(formula)
     elif isinstance(formula, Hypergraph):
@@ -109,7 +113,7 @@ def calculate(formula):
         raise ParserWarning("Unknown formula input for MINCE algorithm.")
     mapping = hypergraph.convert_nodes_to_integers()
     mapping_reversed = {v: k for k, v in mapping.items()}
-    result_kahypar = kahypar(hypergraph, mapping)
+    result_kahypar = kahypar(hypergraph, mapping, method)
     result = [mapping_reversed[node] for node in result_kahypar]
 
     result_string = " < ".join(map(lambda x: str(x), result))
