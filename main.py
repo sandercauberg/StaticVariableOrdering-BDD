@@ -48,7 +48,11 @@ class MyCLI(cmd.Cmd):
             help="Choose a method for factoring out in transformation process",
         )
         parse.add_argument(
-            "-mince_method", help="Choose a method for the MINCE mt-kahaypar algorithm"
+            "-method",
+            help=(
+                "Choose a method for the MINCE mt-kahaypar algorithm, or FORCE initial"
+                " ordering."
+            ),
         )
 
         try:
@@ -111,9 +115,9 @@ class MyCLI(cmd.Cmd):
 
         start_ordering_time = time.perf_counter()
         heuristic_module = importlib.import_module(module_path)
-        if args.mince_method:
+        if args.method:
             order_string, var_order = heuristic_module.calculate(
-                formula, method=args.mince_method
+                formula, method=args.method
             )
         else:
             order_string, var_order = heuristic_module.calculate(formula)
