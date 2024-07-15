@@ -63,7 +63,6 @@ def build_bdd_from_circuit(circuit, var_order):
 
                 if node_instance["type"] == "buf":
                     gate_nodes[node] = fanin_nodes[0]
-                    continue
                 elif node not in gate_nodes:
                     remaining_args = fanin_nodes
                     bdd_node = None
@@ -95,13 +94,13 @@ def build_bdd_from_circuit(circuit, var_order):
                             if Function_v:
                                 bdd_node = bdd.apply(op, bdd_node, Function_v)
 
-                    if node_instance.get("output") is True:
-                        roots.append(bdd_node)
                     gate_nodes[node] = bdd_node
                 else:
                     bdd_node = gate_nodes[node]
 
                 gate_nodes[node] = bdd_node
+                if node_instance["output"] is True:
+                    roots.append(gate_nodes[node])
 
     return bdd, roots
 
