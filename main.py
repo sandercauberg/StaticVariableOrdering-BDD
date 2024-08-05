@@ -94,8 +94,7 @@ class MyCLI(cmd.Cmd):
                 print(f"Transformed from {input_format} to {args.transform}")
                 input_format = "bc"
             elif input_format in ["bc", "v"] and args.transform == "dnf":
-                bc_circuit, dnf_formulas = bc2dnf(formula)
-                formula = Or(*dnf_formulas)
+                bc_circuit, formula = bc2dnf(formula)
                 print(f"Transformed from {input_format} to {args.transform}")
                 input_format = "cnf"
 

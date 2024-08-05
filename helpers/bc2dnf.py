@@ -1,9 +1,38 @@
 from helpers.cudd_helper import build_bdd_from_circuit
+from heuristics import bc_fanin
 from meta.circuit import CustomCircuit
 from meta.formula import And, Not, Or, Variable
 
 
 def bc2dnf(circuit):
+    var_order = CustomCircuit.get_ordered_inputs(circuit)
+    # string, var_order = bc_fanin.calculate(circuit)  # CustomCircuit.get_ordered_inputs(circuit)
+    bdd, roots = build_bdd_from_circuit(circuit, var_order)
+    # bdd.dump("bdd-now.png", roots=roots, filetype="png")
+
+    dnf_formulas = []
+    for i, root in enumerate(roots):
+        print(f"Processing root {i+1}/{len(roots)}")
+        root_clauses = bdd.pick_iter(root, care_vars=[])
+        for clause in root_clauses:
+            term_dict = {}
+            print(clause.items())
+            term_parts = tuple(sorted((var if value else Not(var)) for var, value in clause.items()))
+
+            # Store the term in the dictionary
+            term_dict[term_parts] = True
+        # print(list(root_clauses))
+        # for x in bdd.pick_iter(root, care_vars=[]):
+        #     print(x)
+
+    print("did for loop")
+    print(dnf_formulas)
+
+    print("DNF conversion completed")
+    return circuit, expr
+
+
+def bc2dnf1(circuit):
     var_order = CustomCircuit.get_ordered_inputs(circuit)
     bdd, roots = build_bdd_from_circuit(circuit, var_order)
 
