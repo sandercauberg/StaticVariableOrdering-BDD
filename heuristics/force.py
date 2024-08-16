@@ -1,4 +1,5 @@
 import math
+import random
 from collections import namedtuple
 from parser import ParserWarning
 
@@ -20,15 +21,26 @@ def compute_sum_of_spans(graph, idx_of_var):
     return sum_spans
 
 
-def calculate(formula):
-    if isinstance(formula, Formula) and (formula.is_cnf() or formula.is_dnf()):
+def calculate(formula, method=None):
+    transform = False
+    if isinstance(method, list):
+        method = method[0]
+        transform = True
+    if (
+        isinstance(formula, Formula)
+        and (formula.is_cnf() or formula.is_dnf())
+        or transform
+    ):
         hypergraph = cnf2hypergraph(formula)
     elif isinstance(formula, Hypergraph):
         hypergraph = formula
     else:
         raise ParserWarning("Unknown formula input for FORCE algorithm.")
+    hypergraph_list = list(hypergraph.nodes())
+    if method == "random":
+        random.shuffle(hypergraph_list)
 
-    result = execute_with_order(hypergraph, hypergraph.nodes())
+    result = execute_with_order(hypergraph, hypergraph_list)
     result_string = " < ".join(map(lambda x: str(x), result))
     return result_string, result
 

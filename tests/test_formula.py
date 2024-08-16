@@ -27,7 +27,7 @@ def test_properties():
 def test_extract_variables():
     a, b, c, d = Variable("a"), Variable("b"), Variable("c"), Variable("d")
     formula = (a | c | ~d) & d & (b | ~c)
-    assert formula.extract_variables() == {a, b, c, d}
+    assert formula.extract_variables() == [a, c, d, b]
     assert formula.extract_negated_variables() == {c, d}
 
 

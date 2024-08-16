@@ -36,6 +36,12 @@ commands_dict = {
         # "{} -transform dnf -heuristic mince",
         "{} -transform dnf -heuristic force",
     ],
+    "BC-random": [
+        "{} -heuristic force -method random",
+        "{} -heuristic force -method random",
+        "{} -heuristic force -method random",
+        "{} -heuristic force",
+    ]
 }
 
 parser = argparse.ArgumentParser(
@@ -50,7 +56,7 @@ parser.add_argument(
 parser.add_argument(
     "-c",
     "--category",
-    choices=["CNF", "BC"],
+    choices=["CNF", "BC", "BC-random"],
     default="BC",
     help="Category (CNF or BC)",
 )
@@ -112,12 +118,13 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
                     # break  # Move to the next file
                 except Exception as e:
                     # If an error occurs, add placeholders for the command's columns
-                    file_row.extend([command, str(e), "", "", ""])
+                    error_message = str(e).replace('\n', ' ').replace('\r', '')
+                    file_row.extend([command, error_message, "", "", ""])
             # Append the file_row list to the rows list
             rows.append(file_row)
 
 # Define the column names for the DataFrame
-columns = ["File", "Parsing Time"]
+columns = ["File", "Parsing Time","","",""]
 
 # Add columns for each command result
 for command_index in range(len(commands)):

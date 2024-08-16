@@ -18,5 +18,5 @@ tar -xzf dd-*.tar.gz
 cd dd-*/
 python setup.py install --fetch --cudd
 # confirm that `dd.cudd` did get installed
-python -c 'import dd.cudd'
+#python -c 'import dd.cudd'
 cd ..

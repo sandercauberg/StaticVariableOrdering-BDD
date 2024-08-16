@@ -56,8 +56,8 @@ def test_cudd_helper__build_bdd_bc(testfile, expected_output):
 @pytest.mark.parametrize(
     "testfile,expected_output",
     [
-        ("testfiles/c88.v", 16),
-        ("testfiles/5xor.v", 32),
+        ("testfiles/c88.v", 8),
+        ("testfiles/5xor.v", 16),
     ],
 )
 def test_cudd_helper__count_satisfying_assignments__verilog(testfile, expected_output):
@@ -69,9 +69,9 @@ def test_cudd_helper__count_satisfying_assignments__verilog(testfile, expected_o
 @pytest.mark.parametrize(
     "testfile,expected_output",
     [
-        ("testfiles/bc-example.txt", 16),
-        ("testfiles/bc-example2.txt", 16),
-        ("testfiles/bc-example3.txt", 64),
+        ("testfiles/bc-example.txt", 10),
+        ("testfiles/bc-example2.txt", 5),
+        ("testfiles/bc-example3.txt", 12),
     ],
 )
 def test_cudd_helper__count_satisfying_assignments__bc(testfile, expected_output):

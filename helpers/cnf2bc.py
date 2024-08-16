@@ -26,7 +26,9 @@ def extract_literals_on_dependencies(formula, literals):
         visited_variables.add(variable)
 
         for child in formula.ordered_children:
-            child_variables = child.extract_variables()
+            child_variables = set(
+                child.extract_variables()
+            )  # Ensure child_variables is a set
             if variable in child_variables:
                 dependencies += len(child_variables - visited_variables)
                 visited_variables.update(child_variables)
@@ -59,7 +61,7 @@ def combine_results(
     return combined_result
 
 
-def factor_out(formula, literals):
+def factor_out(formula, literals, method):
     positive_factors = []
     negative_factors = []
     unprocessed_clauses = []
@@ -96,7 +98,14 @@ def factor_out(formula, literals):
             literal,
             factor_out(
                 And(*positive_factors),
-                extract_literals_on_occurrences(And(*positive_factors), literals),
+                (
+                    extract_literals_on_occurrences(And(*positive_factors), literals)
+                    if method == "occurrences"
+                    else extract_literals_on_dependencies(
+                        And(*positive_factors), literals
+                    )
+                ),
+                method,
             ),
         )
     if not negative_factors:
@@ -108,7 +117,14 @@ def factor_out(formula, literals):
             Not(literal),
             factor_out(
                 And(*negative_factors),
-                extract_literals_on_occurrences(And(*negative_factors), literals),
+                (
+                    extract_literals_on_occurrences(And(*negative_factors), literals)
+                    if method == "occurrences"
+                    else extract_literals_on_dependencies(
+                        And(*positive_factors), literals
+                    )
+                ),
+                method,
             ),
         )
 
@@ -119,7 +135,12 @@ def factor_out(formula, literals):
     else:
         unprocessed_result = factor_out(
             And(*unprocessed_clauses),
-            extract_literals_on_occurrences(And(*unprocessed_clauses), literals),
+            (
+                extract_literals_on_occurrences(And(*unprocessed_clauses), literals)
+                if method == "occurrences"
+                else extract_literals_on_dependencies(And(*positive_factors), literals)
+            ),
+            method,
         )
 
     final_formula = combine_results(
@@ -129,16 +150,19 @@ def factor_out(formula, literals):
     return final_formula
 
 
-def cnf2bc(cnf_formula, factor_out_method=None):
+def cnf2bc(cnf_formula, factor_out_method):
     literals = cnf_formula.extract_variables()
     if factor_out_method == "dependencies":
         sorted_literals = extract_literals_on_dependencies(cnf_formula, literals)
+        sorted_copy = sorted_literals.copy()
     else:
         sorted_literals = extract_literals_on_occurrences(cnf_formula, literals)
+        sorted_copy = sorted_literals.copy()
+        factor_out_method = "occurrences"
 
-    formula = factor_out(cnf_formula, sorted_literals)
+    formula = factor_out(cnf_formula, sorted_literals, factor_out_method)
     circuit = CustomCircuit()
-    [circuit.add(f"var_{var}", node_type="input") for var in literals]
+    [circuit.add(f"var_{var}", node_type="input") for var in sorted_copy]
 
     for var in formula.extract_negated_variables():
         circuit.add(f"not_var_{var}", "not", fanin=f"var_{var}")

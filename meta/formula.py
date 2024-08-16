@@ -35,14 +35,24 @@ class Formula:
         )
 
     def extract_variables(self):
-        variables = set()
+        variables = []
+        seen_variables = set()  # To track variables that have been added already
+
+        def add_variable(var):
+            if var not in seen_variables:
+                variables.append(var)
+                seen_variables.add(var)
+
         if isinstance(self, Variable):
-            variables.add(self)
+            add_variable(self)
         elif isinstance(self, BinOp):
             for child in self.children:
-                variables.update(child.extract_variables())
+                for var in child.extract_variables():
+                    add_variable(var)
         elif isinstance(self, Not):
-            variables.update(self.child.extract_variables())
+            for var in self.child.extract_variables():
+                add_variable(var)
+
         return variables
 
     def extract_negated_variables(self):

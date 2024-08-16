@@ -62,8 +62,8 @@ def build_bdd_from_circuit(circuit, var_order):
                         fanin_nodes.append(bdd_node)
 
                 if node_instance["type"] == "buf":
-                    roots.append(fanin_nodes[0])
-                    continue
+                    gate_nodes[node] = fanin_nodes[0]
+                    bdd_node = gate_nodes[node]
                 elif node not in gate_nodes:
                     remaining_args = fanin_nodes
                     bdd_node = None
@@ -95,19 +95,15 @@ def build_bdd_from_circuit(circuit, var_order):
                             if Function_v:
                                 bdd_node = bdd.apply(op, bdd_node, Function_v)
 
-                    if node_instance["output"] is True:
-                        roots.append(bdd_node)
                     gate_nodes[node] = bdd_node
                 else:
                     bdd_node = gate_nodes[node]
 
                 gate_nodes[node] = bdd_node
+                if node_instance["output"] is True:
+                    roots.append(gate_nodes[node])
 
-    conjunction = bdd.false
-    for root in roots:
-        conjunction = bdd.apply("or", conjunction, root)
-
-    return bdd, [conjunction]
+    return bdd, roots
 
 
 def build_bdd_from_formula(formula, var_order):
@@ -184,11 +180,13 @@ def build_bdd_from_formula(formula, var_order):
     return bdd, roots
 
 
-def create_bdd(input_format, formula, var_order, dump=False):
+def create_bdd(input_format, formula, var_order, dump=False, bc_circuit=None):
     # Create BDD with CuDD
     bdd_creation_time_start = time.perf_counter()
     if input_format in ["bc", "v"]:
         bdd, roots = build_bdd_from_circuit(formula, var_order)
+    elif bc_circuit:
+        bdd, roots = build_bdd_from_circuit(bc_circuit, var_order)
     else:
         bdd, roots = build_bdd_from_formula(formula, var_order)
 

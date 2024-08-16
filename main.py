@@ -31,7 +31,7 @@ class MyCLI(cmd.Cmd):
 
     def do_list(self, filename):
         """List files and directories in the current directory."""
-        files_and_dirs = os.listdir(self.current_directory + r"\\input_files")
+        files_and_dirs = os.listdir(self.current_directory + r"/input_files")
         for item in files_and_dirs:
             print(item)
 
@@ -45,6 +45,13 @@ class MyCLI(cmd.Cmd):
         parse.add_argument(
             "-factor_out",
             help="Choose a method for factoring out in transformation process",
+        )
+        parse.add_argument(
+            "-method",
+            help=(
+                "Choose a method for the MINCE mt-kahaypar algorithm, or FORCE initial"
+                " ordering."
+            ),
         )
 
         try:
@@ -70,6 +77,7 @@ class MyCLI(cmd.Cmd):
         )
 
         heuristic_type = None
+        bc_circuit = None
         if args.heuristic:
             heuristic_type = args.heuristic
 
@@ -85,7 +93,11 @@ class MyCLI(cmd.Cmd):
                 print(f"Transformed from {input_format} to {args.transform}")
                 input_format = "bc"
             elif input_format in ["bc", "v"] and args.transform == "dnf":
-                formula = bc2dnf(formula)
+                bc_circuit, formula = bc2dnf(formula)
+                if args.method:
+                    args.method = [args.method, "dnf"]
+                else:
+                    args.method = ["DETERMINISTIC", "dnf"]
                 print(f"Transformed from {input_format} to {args.transform}")
                 input_format = "cnf"
 
@@ -105,7 +117,12 @@ class MyCLI(cmd.Cmd):
 
         start_ordering_time = time.perf_counter()
         heuristic_module = importlib.import_module(module_path)
-        order_string, var_order = heuristic_module.calculate(formula)
+        if args.method:
+            order_string, var_order = heuristic_module.calculate(
+                formula, method=args.method
+            )
+        else:
+            order_string, var_order = heuristic_module.calculate(formula)
 
         end_time = time.perf_counter()
         ordering_time = end_time - start_ordering_time
@@ -117,7 +134,9 @@ class MyCLI(cmd.Cmd):
             + " seconds."
         )
 
-        bdd_info = create_bdd(input_format, formula, var_order, dump=args.dump)
+        bdd_info = create_bdd(
+            input_format, formula, var_order, dump=args.dump, bc_circuit=bc_circuit
+        )
 
         return {
             "File": args.filename,
