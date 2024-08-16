@@ -8,7 +8,7 @@ def calculate(formula):
         visited_variables.add(variable)
 
         for child in formula.children:
-            child_variables = child.extract_variables()
+            child_variables = set(child.extract_variables())  # Convert to set
             if variable in child_variables:
                 dependencies += len(child_variables - visited_variables)
                 visited_variables.update(child_variables)
@@ -16,10 +16,7 @@ def calculate(formula):
 
     dependencies_list.sort(key=lambda x: x[1], reverse=True)
 
-    # for variable, dependencies in dependencies_list:
-    #     print(f'var {variable} has #dependencies {dependencies}')
-
-    result_string = " < ".join(map(lambda x: str(x[0]), dependencies_list))
+    result_string = " < ".join(map(str, (x[0] for x in dependencies_list)))
     result_list = [variable for variable, _ in dependencies_list]
 
     return result_string, result_list

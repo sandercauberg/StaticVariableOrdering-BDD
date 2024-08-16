@@ -9,7 +9,6 @@ from helpers.bc2dnf import bc2dnf
 from helpers.cnf2bc import cnf2bc
 from helpers.cudd_helper import create_bdd
 from heuristics import heuristics
-from meta.formula import Or
 
 
 class MyCLI(cmd.Cmd):
@@ -95,6 +94,10 @@ class MyCLI(cmd.Cmd):
                 input_format = "bc"
             elif input_format in ["bc", "v"] and args.transform == "dnf":
                 bc_circuit, formula = bc2dnf(formula)
+                if args.method:
+                    args.method = [args.method, "dnf"]
+                else:
+                    args.method = ["DETERMINISTIC", "dnf"]
                 print(f"Transformed from {input_format} to {args.transform}")
                 input_format = "cnf"
 

@@ -5,7 +5,7 @@ def calculate(formula):
     if hasattr(formula, "extract_variables") and callable(
         getattr(formula, "extract_variables")
     ):
-        original_order = list(str(x) for x in formula.extract_variables())
+        original_order = list(x for x in formula.extract_variables())
     else:
         formula.output_gates = formula.outputs()
         original_order = CustomCircuit.get_ordered_inputs(formula)

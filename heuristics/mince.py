@@ -105,7 +105,15 @@ def kahypar(hypergraph, nodes_mapping, method="DETERMINISTIC"):
 
 
 def calculate(formula, method="DETERMINISTIC"):
-    if isinstance(formula, Formula) and (formula.is_cnf() or formula.is_dnf()):
+    transform = False
+    if isinstance(method, list):
+        method = method[0]
+        transform = True
+    if (
+        isinstance(formula, Formula)
+        and (formula.is_cnf() or formula.is_dnf())
+        or transform
+    ):
         hypergraph = cnf2hypergraph(formula)
     elif isinstance(formula, Hypergraph):
         hypergraph = formula
