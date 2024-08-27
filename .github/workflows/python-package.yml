@@ -45,4 +45,4 @@ jobs:
       run: flake8 --exclude=./venv/,./dd-*/,/mt-kahypar/ --max-line-length 88 --ignore=E203,E402,W503
     - name: Test with pytest
       run: |
-        pytest
+        make test
