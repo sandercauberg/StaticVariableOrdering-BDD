@@ -12,6 +12,7 @@ from main import MyCLI
 commands_dict = {
     "CNF": [
         "{}",
+        "{} -heuristic force",
         "{} -heuristic dependencies",
         "{} -heuristic mince_manual",
         # "{} -heuristic mince",
@@ -36,12 +37,6 @@ commands_dict = {
         # "{} -transform dnf -heuristic mince",
         "{} -transform dnf -heuristic force",
     ],
-    "BC-random": [
-        "{} -heuristic force -method random",
-        "{} -heuristic force -method random",
-        "{} -heuristic force -method random",
-        "{} -heuristic force",
-    ]
 }
 
 parser = argparse.ArgumentParser(
@@ -81,7 +76,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
             for command_index, command in enumerate(commands):
                 try:
                     gc.collect()
-                    with Timeout(300):
+                    with Timeout(10000):
                         print(command)
                         formatted_command = command.format(file_path)
                         # Execute the command with the file name as an argument
@@ -118,13 +113,13 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
                     # break  # Move to the next file
                 except Exception as e:
                     # If an error occurs, add placeholders for the command's columns
-                    error_message = str(e).replace('\n', ' ').replace('\r', '')
+                    error_message = str(e).replace("\n", " ").replace("\r", "")
                     file_row.extend([command, error_message, "", "", ""])
             # Append the file_row list to the rows list
             rows.append(file_row)
 
 # Define the column names for the DataFrame
-columns = ["File", "Parsing Time","","",""]
+columns = ["File", "Parsing Time"]
 
 # Add columns for each command result
 for command_index in range(len(commands)):

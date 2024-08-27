@@ -15,8 +15,8 @@ set -v
 
 pip download dd --no-deps
 tar -xzf dd-*.tar.gz
-cd dd-*/
+cd dd-0.6.0
 python setup.py install --fetch --cudd
-# confirm that `dd.cudd` did get installed
-#python -c 'import dd.cudd'
 cd ..
+# confirm that `dd.cudd` did get installed
+python -c 'import dd.cudd'
