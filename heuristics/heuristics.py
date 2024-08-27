@@ -13,7 +13,7 @@ heuristics_cnf = {
     "force": "heuristics.force",
 }
 
-heuristics_sat = {"fanin": "heuristics.fanin"}
+heuristics_sat = {"fanin": "heuristics.cnf_dependencies"}
 
 heuristics = {
     "bc": heuristics_boolean_circuits,
